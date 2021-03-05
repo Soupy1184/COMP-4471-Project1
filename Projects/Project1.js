@@ -62,12 +62,11 @@ function initVertexBuffers(gl) {
 
   //  console.log(gl_Position)
   for(var i = 0; i <= numFans; i++) {
-    var index = 2*3 + i*2; // there is already 2 items in array
+    var index = 2 + i*2;
     var angle = degreePerFan * (i+1);
     //console.log(angle)
     vertexData[index] = Math.cos(angle) * 0.5;
     vertexData[index + 1] = Math.sin(angle) * 0.5;
-    vertexData[index + 2] = 0;
   }
   //console.log(vertexData);
   var vertexDataTyped = new Float32Array(vertexData);
