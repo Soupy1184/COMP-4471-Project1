@@ -68,14 +68,12 @@ function initVertexBuffers(gl) {
   var ATTRIBUTES = 2;
   var numFans = 64;
   var degreePerFan = (2* Math.PI) / numFans;
-  var vertexData = [
-    0.0, 0.0
-  ];
+  var vertexData = [];
 
 
   //  console.log(gl_Position)
   for(var i = 0; i <= numFans; i++) {
-    var index = 2 + i*2;
+    var index = i*2;
     var angle = degreePerFan * (i+1);
     //console.log(angle)
     vertexData[index] = Math.cos(angle) * 0.5;
