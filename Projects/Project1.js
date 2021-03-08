@@ -31,6 +31,18 @@ function main() {
     return;
   }
 
+  //Get the storage location of a_Position 
+  var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
+  if(a_Position < 0){
+      console.log('Fail to get the storage location of a_Position');
+      return;
+  }
+
+  canvas.onmousedown = function(ev){ click(ev, gl, canvas, a_Position); };
+
+  //Set vertex position to attribute variable
+  gl.vertexAttrib3f(a_Position, 0.0, 0.0, 0.0);
+
   // Write the positions of vertices to a vertex shader
   var n = initVertexBuffers(gl);
   if (n < 0) {
@@ -46,11 +58,12 @@ function main() {
 
   // Draw the rectangle
   gl.drawArrays(gl.TRIANGLE_FAN, 0, n);
+  gl.drawArrays(gl.POINTS, 0, 1);
   
 }
 
 function initVertexBuffers(gl) {
-  //Again, order of vertices is important, swap the third and fourth vertex and see!
+  
   var circle = {x: 0, y:0, r: 0.75};
   var ATTRIBUTES = 2;
   var numFans = 64;
@@ -68,6 +81,7 @@ function initVertexBuffers(gl) {
     vertexData[index] = Math.cos(angle) * 0.5;
     vertexData[index + 1] = Math.sin(angle) * 0.5;
   }
+
   //console.log(vertexData);
   var vertexDataTyped = new Float32Array(vertexData);
   
@@ -95,4 +109,27 @@ function initVertexBuffers(gl) {
   gl.enableVertexAttribArray(a_Position);
   
   return numFans;
+}
+
+
+var g_points = [];
+function click(ev, gl, canvas, a_Position){
+  var x = ev.clientX;
+  var y = ev.clientY;
+  var rect = ev.target.getBoundingClientRect();
+
+  x = ((x - rect.left) - canvas.width/2)/(canvas.width/2);
+  y = (canvas.height/2 - (y - rect.top))/(canvas.height/2);
+
+  g_points.push(x);
+  g_points.push(y);
+
+  gl.clear(gl.COLOR_BUFFER_BIT);
+
+  var len = g_points.length;
+  for(var i = 0; i < len; i += 2){
+    gl.vertexAttrib3f(a_Position, g_points[i], g_points[i+1], 0.0);
+
+    gl.drawArrays(gl.POINTS, 0, 1);
+  }
 }
