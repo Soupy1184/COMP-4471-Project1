@@ -16,7 +16,7 @@ var FSHADER_SOURCE =
 
 function main() {
   // Retrieve <canvas> element
-  var canvas = document.getElementById('webgl');
+  var canvas = document.querySelector('#webgl');
 
   // Get the rendering context for WebGL
   var gl = getWebGLContext(canvas);
@@ -25,6 +25,7 @@ function main() {
     return;
   }
 
+  
   // Initialize shaders
   if (!initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)) {
     console.log('Failed to intialize shaders.');
@@ -38,18 +39,17 @@ function main() {
       return;
   }
 
-  canvas.onmousedown = function(ev){ click(ev, gl, canvas, a_Position); };
+  // canvas.onmousedown = function(ev){ click(ev, gl, canvas, a_Position); };
 
   //Set vertex position to attribute variable
   gl.vertexAttrib3f(a_Position, 0.0, 0.0, 0.0);
 
   // Write the positions of vertices to a vertex shader
-  var n = initVertexBuffers(gl);
+  var n = initCircleFanBuffers(gl);
   if (n < 0) {
     console.log('Failed to set the positions of the vertices');
     return;
   }
-
   // Specify the color for clearing <canvas>
   gl.clearColor(0, 0, 0, 1);
 
@@ -58,18 +58,22 @@ function main() {
 
   // Draw the rectangle
   gl.drawArrays(gl.TRIANGLE_FAN, 0, n);
+
+  n = initPointBuffers(gl);
+  if (n < 0){
+    console.log(n);
+    return;
+  }
+
   gl.drawArrays(gl.POINTS, 0, 1);
-  
 }
 
-function initVertexBuffers(gl) {
-  
+function initCircleFanBuffers(gl) {
   var circle = {x: 0, y:0, r: 0.75};
   var ATTRIBUTES = 2;
   var numFans = 64;
   var degreePerFan = (2* Math.PI) / numFans;
   var vertexData = [];
-
 
   //  console.log(gl_Position)
   for(var i = 0; i <= numFans; i++) {
@@ -79,17 +83,15 @@ function initVertexBuffers(gl) {
     vertexData[index] = Math.cos(angle) * 0.5;
     vertexData[index + 1] = Math.sin(angle) * 0.5;
   }
-
   //console.log(vertexData);
   var vertexDataTyped = new Float32Array(vertexData);
   
   // Create a buffer object
   var vertexBuffer = gl.createBuffer();
   if (!vertexBuffer) {
-    console.log('Failed to create the buffer object');
+    console.log('Failed to create the buffer object for triangle fan');
     return -1;
   }
-  
   // Bind the buffer object to target
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
   // Write date into the buffer object
@@ -97,7 +99,7 @@ function initVertexBuffers(gl) {
   
   var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
   if (a_Position < 0) {
-    console.log('Failed to get the storage location of a_Position');
+    console.log('Failed to get the storage location of a_Position in Triangle Fan Buffer');
     return -1;
   }
   // Assign the buffer object to a_Position variable
@@ -109,25 +111,52 @@ function initVertexBuffers(gl) {
   return numFans;
 }
 
+function initPointBuffers(gl){
+  // var x = 0.75;
+  // var y = 0.75;
+  // var vertexData = [x, y];
 
-var g_points = [];
-function click(ev, gl, canvas, a_Position){
-  var x = ev.clientX;
-  var y = ev.clientY;
-  var rect = ev.target.getBoundingClientRect();
+  // var vertexDataTyped = new Float32Array(vertexData);
 
-  x = ((x - rect.left) - canvas.width/2)/(canvas.width/2);
-  y = (canvas.height/2 - (y - rect.top))/(canvas.height/2);
+  // var vertexBuffer = gl.createBuffer();
+  // if (!vertexBuffer){
+  //   console.log('Failed to create buffer object for point');
+  //   return -1;
+  // }
 
-  g_points.push(x);
-  g_points.push(y);
+  // gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+  // gl.bufferData(gl.ARRAY_BUFFER, vertexDataTyped, gl.STATIC_DRAW);
 
-  gl.clear(gl.COLOR_BUFFER_BIT);
-
-  var len = g_points.length;
-  for(var i = 0; i < len; i += 2){
-    gl.vertexAttrib3f(a_Position, g_points[i], g_points[i+1], 0.0);
-
-    gl.drawArrays(gl.POINTS, 0, 1);
+  var a_Position = gl.getAttribLocation(gl.program, 'a_Postion');
+  if (a_Position < 0){
+    console.log('Failed to get the storage location of a_Postion in Point Buffer');
   }
+
+  gl.vertexAttrib3f(a_Position, 0.75, 0.75, 0.0);
+  //gl.enableVertexAttribArray(a_Position);
+
+  return 1;
 }
+
+
+// var g_points = [];
+// function click(ev, gl, canvas, a_Position){
+//   var x = ev.clientX;
+//   var y = ev.clientY;
+//   var rect = ev.target.getBoundingClientRect();
+
+//   x = ((x - rect.left) - canvas.width/2)/(canvas.width/2);
+//   y = (canvas.height/2 - (y - rect.top))/(canvas.height/2);
+
+//   g_points.push(x);
+//   g_points.push(y);
+
+//   gl.clear(gl.COLOR_BUFFER_BIT);
+
+//   var len = g_points.length;
+//   for(var i = 0; i < len; i += 2){
+//     gl.vertexAttrib3f(a_Position, g_points[i], g_points[i+1], 0.0);
+
+//     gl.drawArrays(gl.POINTS, 0, 1);
+//   }
+// }
