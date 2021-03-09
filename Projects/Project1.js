@@ -47,76 +47,38 @@ function main() {
     return
   }
 
-  // canvas.onmousedown = function(ev){ click(ev, gl, canvas, a_Position); };
+  var positionBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-  //Set vertex position to attribute variable
-  gl.vertexAttrib3f(a_Position, 0.0, 0.0, 0.0);
-
-  // Write the positions of vertices to a vertex shader
-  var n = initCircleFanBuffers(gl);
-  n = 190;
-  if (n < 0) {
-    console.log('Failed to set the positions of the vertices');
-    return;
-  }
+  
   // Specify the color for clearing <canvas>
   gl.clearColor(0, 0, 0, 1);
 
   // Clear <canvas>
   gl.clear(gl.COLOR_BUFFER_BIT);
 
-  // Draw the rectangle
-  gl.drawArrays(gl.TRIANGLE_FAN, 0, n);
-}
-
-function initCircleFanBuffers(gl) {
-  
-  var playSurface = CreateCircle(0, 0, 0.5, 64);
-  var testSecondCircle = CreateCircle(0.7, 0.7, 0.01, 64);
-  var testThirdCircle = CreateCircle(-0.7, 0.7, 0.01, 64);
-
-  //var bacteriaSpots = [testSecondCircle, testThirdCircle];
-  var bacteria = testSecondCircle.concat(testThirdCircle);
-
-  // bacteriaSpots.forEach(i => {
-  //   bacteria.push(i);
-  // });
-
-  
-
-  //console.log(vertexData);
-  var vertexDataTyped = new Float32Array(playSurface.concat(bacteria));
-  
-  console.log(vertexDataTyped.length);
-
-  //vertexDataTyped.subarray(CreateCircle(0, 0, 0.5, 64));
-  
-  // Create a buffer object
-  var vertexBuffer = gl.createBuffer();
-  if (!vertexBuffer) {
-    console.log('Failed to create the buffer object for triangle fan');
-    return -1;
-  }
-  // Bind the buffer object to target
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-  // Write date into the buffer object
-  gl.bufferData(gl.ARRAY_BUFFER, vertexDataTyped, gl.STATIC_DRAW);
-  
-  var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
-  if (a_Position < 0) {
-    console.log('Failed to get the storage location of a_Position in Triangle Fan Buffer');
-    return -1;
-  }
-  // Assign the buffer object to a_Position variable
-  gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
-  
-  // Enable the assignment to a_Position variable
   gl.enableVertexAttribArray(a_Position);
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+  gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
+
+
+  //create play surface
+  CreateCircle(gl, 0, 0, 0.5, 64);
+  gl.uniform4f(u_FragColor, 1, 0, 1, 1);
+  gl.drawArrays(gl.TRIANGLE_FAN, 0, 64);
+  // Draw the rectangle
   
-  return vertexDataTyped.length;
+  //create random other circle
+  CreateCircle(gl, 0.7, 0.7, 0.1, 64);
+  gl.uniform4f(u_FragColor, 0, 0, 1, 1);
+  gl.drawArrays(gl.TRIANGLE_FAN, 0, 64);
+
 }
 
-function CreateCircle(x, y, r, n){
+
+
+function CreateCircle(gl, x, y, r, n){
   var circle = {x: x, y:y, r: r};
   //var ATTRIBUTES = 2;
   var numFans = n;
@@ -132,7 +94,7 @@ function CreateCircle(x, y, r, n){
     vertexData[index + 1] = circle.y + Math.sin(angle) * circle.r;
   }
 
-  return vertexData;
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexData), gl.STATIC_DRAW);
 }
 
 
