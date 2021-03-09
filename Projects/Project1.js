@@ -14,6 +14,8 @@ var FSHADER_SOURCE =
   'void main() {\n' +
   '  gl_FragColor = u_FragColor;\n' +
   '}\n';
+  
+var bacteriaCount = 0;
 
 
 function main() {
@@ -26,7 +28,6 @@ function main() {
     console.log('Failed to get the rendering context for WebGL');
     return;
   }
-
   
   // Initialize shaders
   if (!initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)) {
@@ -49,7 +50,6 @@ function main() {
 
   var positionBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
   
   // Specify the color for clearing <canvas>
   gl.clearColor(0, 0, 0, 1);
@@ -62,21 +62,58 @@ function main() {
 
   gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
 
-
   //create play surface
+  var origin = {x: 0.0, y: 0.0, r: 0.5}
   CreateCircle(gl, 0, 0, 0.5, 64);
   gl.uniform4f(u_FragColor, 1, 0, 1, 1);
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 64);
   // Draw the rectangle
   
   //create random other circle
-  CreateCircle(gl, 0.7, 0.7, 0.1, 64);
-  gl.uniform4f(u_FragColor, 0, 0, 1, 1);
-  gl.drawArrays(gl.TRIANGLE_FAN, 0, 64);
+  var bacteriaLimit = 3;
+  
+  //if bacteria count is less than limit, create a new one
+  if(bacteriaCount < bacteriaLimit && timer > 500){
+    console.log('Drawing circle');
+    var angle = Math.floor(Math.random() * 6);
+    CreateCircle(gl, (origin.r*Math.cos(91)) + origin.x, (origin.r*Math.sin(91)) + origin.y, 0.05, 64);
+    console.log('x: ' + (0.5*Math.cos(90)) + 0.0);
+    console.log('y: ' + (0.5*Math.sin(90)) + 0.0);
+    gl.uniform4f(u_FragColor, 0, 0, 1, 1);
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, 64);
+    bacteriaCount++;
+  }
+
+    console.log('Drawing circle');
+    CreateCircle(gl, (0.5*Math.cos(179)) + 0.0, (0.5*Math.sin(179)) + 0.0, 0.05, 64);
+    // console.log('x: ' + (0.5*Math.cos(90)) + 0.0);
+    // console.log('y: ' + (0.5*Math.sin(90)) + 0.0);
+    gl.uniform4f(u_FragColor, 0, 0, 1, 1);
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, 64);
+    bacteriaCount++;
+
+
+  var tick = function() {
+    Time();
+    requestAnimationFrame(tick, canvas); // Request that the browser calls tick
+  };
+  tick();
 
 }
 
-
+var timer = Date.now();
+function Time() {
+  // Calculate the elapsed time
+  var now = Date.now();
+  var elapsed = now - timer;
+  if (elapsed > 5){
+    console.log(timer + ' true');
+    return true;
+  }
+  else{
+    timer = now;
+  }
+}
 
 function CreateCircle(gl, x, y, r, n){
   var circle = {x: x, y:y, r: r};
