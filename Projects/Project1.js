@@ -9,8 +9,10 @@ var VSHADER_SOURCE =
 
 // Fragment shader program
 var FSHADER_SOURCE =
+  'precision mediump float;\n' +
+  'uniform vec4 u_FragColor;\n' +
   'void main() {\n' +
-  '  gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n' +
+  '  gl_FragColor = u_FragColor;\n' +
   '}\n';
 
 
@@ -39,6 +41,12 @@ function main() {
       return;
   }
 
+  var u_FragColor = gl.getUniformLocation(gl.program, 'u_FragColor');
+  if (!u_FragColor){
+    console.log('Failed to get the storage location');
+    return
+  }
+
   // canvas.onmousedown = function(ev){ click(ev, gl, canvas, a_Position); };
 
   //Set vertex position to attribute variable
@@ -46,6 +54,7 @@ function main() {
 
   // Write the positions of vertices to a vertex shader
   var n = initCircleFanBuffers(gl);
+  n = 190;
   if (n < 0) {
     console.log('Failed to set the positions of the vertices');
     return;
@@ -58,33 +67,29 @@ function main() {
 
   // Draw the rectangle
   gl.drawArrays(gl.TRIANGLE_FAN, 0, n);
-
-  n = initPointBuffers(gl);
-  if (n < 0){
-    console.log(n);
-    return;
-  }
-
-  gl.drawArrays(gl.POINTS, 0, 1);
 }
 
 function initCircleFanBuffers(gl) {
-  var circle = {x: 0, y:0, r: 0.75};
-  var ATTRIBUTES = 2;
-  var numFans = 64;
-  var degreePerFan = (2* Math.PI) / numFans;
-  var vertexData = [];
+  
+  var playSurface = CreateCircle(0, 0, 0.5, 64);
+  var testSecondCircle = CreateCircle(0.7, 0.7, 0.01, 64);
+  var testThirdCircle = CreateCircle(-0.7, 0.7, 0.01, 64);
 
-  //  console.log(gl_Position)
-  for(var i = 0; i <= numFans; i++) {
-    var index = i*2;
-    var angle = degreePerFan * (i+1);
-    //console.log(angle)
-    vertexData[index] = Math.cos(angle) * 0.5;
-    vertexData[index + 1] = Math.sin(angle) * 0.5;
-  }
+  //var bacteriaSpots = [testSecondCircle, testThirdCircle];
+  var bacteria = testSecondCircle.concat(testThirdCircle);
+
+  // bacteriaSpots.forEach(i => {
+  //   bacteria.push(i);
+  // });
+
+  
+
   //console.log(vertexData);
-  var vertexDataTyped = new Float32Array(vertexData);
+  var vertexDataTyped = new Float32Array(playSurface.concat(bacteria));
+  
+  console.log(vertexDataTyped.length);
+
+  //vertexDataTyped.subarray(CreateCircle(0, 0, 0.5, 64));
   
   // Create a buffer object
   var vertexBuffer = gl.createBuffer();
@@ -108,34 +113,26 @@ function initCircleFanBuffers(gl) {
   // Enable the assignment to a_Position variable
   gl.enableVertexAttribArray(a_Position);
   
-  return numFans;
+  return vertexDataTyped.length;
 }
 
-function initPointBuffers(gl){
-  // var x = 0.75;
-  // var y = 0.75;
-  // var vertexData = [x, y];
+function CreateCircle(x, y, r, n){
+  var circle = {x: x, y:y, r: r};
+  //var ATTRIBUTES = 2;
+  var numFans = n;
+  var degreePerFan = (2* Math.PI) / numFans;
+  var vertexData = [];
 
-  // var vertexDataTyped = new Float32Array(vertexData);
-
-  // var vertexBuffer = gl.createBuffer();
-  // if (!vertexBuffer){
-  //   console.log('Failed to create buffer object for point');
-  //   return -1;
-  // }
-
-  // gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-  // gl.bufferData(gl.ARRAY_BUFFER, vertexDataTyped, gl.STATIC_DRAW);
-
-  var a_Position = gl.getAttribLocation(gl.program, 'a_Postion');
-  if (a_Position < 0){
-    console.log('Failed to get the storage location of a_Postion in Point Buffer');
+  //  console.log(gl_Position)
+  for(var i = 0; i <= numFans; i++) {
+    var index = i*2;
+    var angle = degreePerFan * (i+1);
+    //console.log(angle)
+    vertexData[index] =  circle.x + Math.cos(angle) * circle.r;
+    vertexData[index + 1] = circle.y + Math.sin(angle) * circle.r;
   }
 
-  gl.vertexAttrib3f(a_Position, 0.75, 0.75, 0.0);
-  //gl.enableVertexAttribArray(a_Position);
-
-  return 1;
+  return vertexData;
 }
 
 
