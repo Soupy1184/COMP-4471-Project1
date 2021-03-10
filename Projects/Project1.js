@@ -3,6 +3,7 @@
 var VSHADER_SOURCE =
   'attribute vec4 a_Position;\n' +
   'uniform mat4 u_ModelMatrix;\n' +
+  'uniform float time;\n' +
   'void main() {\n' +
   '  gl_Position = a_Position;\n' +
   '}\n';
@@ -48,6 +49,10 @@ function main() {
     return
   }
 
+  var timeLoc = gl.getUniformLocation(gl.program, 'time');
+  
+  console.log(timeLoc);
+
   var positionBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   
@@ -64,56 +69,48 @@ function main() {
 
   //create play surface
   var origin = {x: 0.0, y: 0.0, r: 0.5}
-  CreateCircle(gl, 0, 0, 0.5, 64);
-  gl.uniform4f(u_FragColor, 1, 0, 1, 1);
-  gl.drawArrays(gl.TRIANGLE_FAN, 0, 64);
-  // Draw the rectangle
-  
-  //create random other circle
-  var bacteriaLimit = 3;
+  var bacteriaLimit = 3; 
   
   //if bacteria count is less than limit, create a new one
-  if(bacteriaCount < bacteriaLimit && timer > 500){
-    console.log('Drawing circle');
-    var angle = Math.floor(Math.random() * 6);
-    CreateCircle(gl, (origin.r*Math.cos(91)) + origin.x, (origin.r*Math.sin(91)) + origin.y, 0.05, 64);
-    console.log('x: ' + (0.5*Math.cos(90)) + 0.0);
-    console.log('y: ' + (0.5*Math.sin(90)) + 0.0);
-    gl.uniform4f(u_FragColor, 0, 0, 1, 1);
+  
+    // console.log('Drawing circle');
+    // CreateCircle(gl, (0.5*Math.cos(179)) + 0.0, (0.5*Math.sin(179)) + 0.0, 0.05, 64);
+    // // console.log('x: ' + (0.5*Math.cos(90)) + 0.0);
+    // // console.log('y: ' + (0.5*Math.sin(90)) + 0.0);
+    // gl.uniform4f(u_FragColor, 0, 0, 1, 1);
+    // gl.drawArrays(gl.TRIANGLE_FAN, 0, 64);
+    // bacteriaCount++;
+
+  var bacteria = [];
+  function render(time) {
+    time *= 0.001;  // convert to seconds
+
+    CreateCircle(gl, 0, 0, 0.5, 64);
+    gl.uniform4f(u_FragColor, 1, 0, 1, 1);
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 64);
-    bacteriaCount++;
+
+      // tell the shader the time
+    gl.uniform1f(timeLoc, time);
+    
+    if(bacteriaCount < bacteriaLimit && time > 2){
+      console.log('Drawing circle');
+      var angle = Math.floor(Math.random() * 6);
+      var newBacteria = CreateCircle(gl, (origin.r*Math.cos(angle)) + origin.x, (origin.r*Math.sin(angle)) + origin.y, 0.05, 64);
+      bacteria.push(newBacteria);
+      
+      bacteriaCount++;
+    }
+    bacteria.forEach(i => {
+      i;
+      gl.uniform4f(u_FragColor, 0, 0, 1, 1);
+      gl.drawArrays(gl.TRIANGLE_FAN, 0, 64);
+    });
+    
+    requestAnimationFrame(render);
   }
-
-    console.log('Drawing circle');
-    CreateCircle(gl, (0.5*Math.cos(179)) + 0.0, (0.5*Math.sin(179)) + 0.0, 0.05, 64);
-    // console.log('x: ' + (0.5*Math.cos(90)) + 0.0);
-    // console.log('y: ' + (0.5*Math.sin(90)) + 0.0);
-    gl.uniform4f(u_FragColor, 0, 0, 1, 1);
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 64);
-    bacteriaCount++;
-
-
-  var tick = function() {
-    Time();
-    requestAnimationFrame(tick, canvas); // Request that the browser calls tick
-  };
-  tick();
-
+  requestAnimationFrame(render);
 }
 
-var timer = Date.now();
-function Time() {
-  // Calculate the elapsed time
-  var now = Date.now();
-  var elapsed = now - timer;
-  if (elapsed > 5){
-    console.log(timer + ' true');
-    return true;
-  }
-  else{
-    timer = now;
-  }
-}
 
 function CreateCircle(gl, x, y, r, n){
   var circle = {x: x, y:y, r: r};
@@ -135,24 +132,24 @@ function CreateCircle(gl, x, y, r, n){
 }
 
 
-// var g_points = [];
-// function click(ev, gl, canvas, a_Position){
-//   var x = ev.clientX;
-//   var y = ev.clientY;
-//   var rect = ev.target.getBoundingClientRect();
 
-//   x = ((x - rect.left) - canvas.width/2)/(canvas.width/2);
-//   y = (canvas.height/2 - (y - rect.top))/(canvas.height/2);
 
-//   g_points.push(x);
-//   g_points.push(y);
+  // var tick = function() {
+  //   Time();
+  //   requestAnimationFrame(tick, canvas); // Request that the browser calls tick
+  // };
+  // tick();
 
-//   gl.clear(gl.COLOR_BUFFER_BIT);
-
-//   var len = g_points.length;
-//   for(var i = 0; i < len; i += 2){
-//     gl.vertexAttrib3f(a_Position, g_points[i], g_points[i+1], 0.0);
-
-//     gl.drawArrays(gl.POINTS, 0, 1);
+// var timer = Date.now();
+// function Time() {
+//   // Calculate the elapsed time
+//   var now = Date.now();
+//   var elapsed = now - timer;
+//   if (elapsed > 5){
+//     console.log(timer + ' true');
+//     return true;
+//   }
+//   else{
+//     timer = now;
 //   }
 // }
