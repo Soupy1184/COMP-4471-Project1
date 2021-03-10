@@ -15,8 +15,13 @@ var FSHADER_SOURCE =
   'void main() {\n' +
   '  gl_FragColor = u_FragColor;\n' +
   '}\n';
-  
+
+//Globals
 var bacteriaCount = 0;
+var timer = Date.now();
+var e = 0;
+
+//colours
 
 
 function main() {
@@ -49,6 +54,8 @@ function main() {
     return
   }
 
+  
+
   var timeLoc = gl.getUniformLocation(gl.program, 'time');
   
   console.log(timeLoc);
@@ -71,46 +78,81 @@ function main() {
   var origin = {x: 0.0, y: 0.0, r: 0.5}
   var bacteriaLimit = 3; 
   
-  //if bacteria count is less than limit, create a new one
   
-    // console.log('Drawing circle');
-    // CreateCircle(gl, (0.5*Math.cos(179)) + 0.0, (0.5*Math.sin(179)) + 0.0, 0.05, 64);
-    // // console.log('x: ' + (0.5*Math.cos(90)) + 0.0);
-    // // console.log('y: ' + (0.5*Math.sin(90)) + 0.0);
-    // gl.uniform4f(u_FragColor, 0, 0, 1, 1);
-    // gl.drawArrays(gl.TRIANGLE_FAN, 0, 64);
-    // bacteriaCount++;
+  var blue = {c: 'blue', rgba1: 0, rgba2: 0, rgba3: 1, rgba4: 1};
+  var purple = {c: 'purple', rgba1: 1, rgba2: 0, rgba3: 1, rgba4: 1};
+  var green = {c: 'green', rgba1: 0, rgba2: 1, rgba3: 0, rgba4: 1};
+  var yellow = {c: 'yellow', rgba1: 1, rgba2: 1, rgba3: 0, rgba4: 1};
+  var colours = [blue, purple, green, yellow];
 
   var bacteria = [];
+  var bacteriaColour = [];
+  var currentColours = [];
+
+  //LOOP
   function render(time) {
     time *= 0.001;  // convert to seconds
-
+    Time();
+    //console.log(timer);
     CreateCircle(gl, 0, 0, 0.5, 64);
-    gl.uniform4f(u_FragColor, 1, 0, 1, 1);
+    gl.uniform4f(u_FragColor, 1, 0, 0, 1);
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 64);
 
-      // tell the shader the time
+    // tell the shader the time
     gl.uniform1f(timeLoc, time);
     
-    if(bacteriaCount < bacteriaLimit && time > 2){
+    //create new starting bacteria
+    if(bacteriaCount < bacteriaLimit && (elapsed + 1) % 4 == 0){
       console.log('Drawing circle');
       var angle = Math.floor(Math.random() * 6);
-      var newBacteria = CreateCircle(gl, (origin.r*Math.cos(angle)) + origin.x, (origin.r*Math.sin(angle)) + origin.y, 0.05, 64);
+      var newBacteria = StoreCircle((origin.r*Math.cos(angle)) + origin.x, (origin.r*Math.sin(angle)) + origin.y, 0.05, 64);
+      var newBacteriaColour = colours[e];
+      console.log(newBacteriaColour);
+
+      //enumerates colours 
+      e++;
+      if(e > 3){
+        e = 0;
+      }
+
+      //stores the new circle(basteria) in an array to be drawn
       bacteria.push(newBacteria);
+      bacteriaColour.push(newBacteriaColour);
+      currentColours.push(newBacteriaColour.c);
       
       bacteriaCount++;
+
+      console.log(currentColours);
     }
-    bacteria.forEach(i => {
-      i;
-      gl.uniform4f(u_FragColor, 0, 0, 1, 1);
-      gl.drawArrays(gl.TRIANGLE_FAN, 0, 64);
-    });
+
+    if (bacteria.length != 0){ 
+      //draw all circles in bacteria 
+      for (i = 0; i < bacteria.length; i++){
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bacteria[i]), gl.STATIC_DRAW);
+        gl.uniform4f(u_FragColor, bacteriaColour[i].rgba1, bacteriaColour[i].rgba2, bacteriaColour[i].rgba3, bacteriaColour[i].rgba4);
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, 64);
+      }
+    }
     
     requestAnimationFrame(render);
   }
   requestAnimationFrame(render);
 }
 
+var elapsed;
+function Time() {
+  // Calculate the elapsed time
+  var now = Date.now();
+  elapsed = now - timer;
+  elapsed = Math.floor(elapsed*0.001);
+  if (elapsed > 2){
+    console.log(elapsed);
+    timer = Date.now();
+  }
+  else{
+    console.log(elapsed);
+  }
+}
 
 function CreateCircle(gl, x, y, r, n){
   var circle = {x: x, y:y, r: r};
@@ -131,25 +173,21 @@ function CreateCircle(gl, x, y, r, n){
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexData), gl.STATIC_DRAW);
 }
 
+function StoreCircle(x, y, r, n){
+  var circle = {x: x, y:y, r: r};
+  //var ATTRIBUTES = 2;
+  var numFans = n;
+  var degreePerFan = (2* Math.PI) / numFans;
+  var vertexData = [];
 
+  //  console.log(gl_Position)
+  for(var i = 0; i <= numFans; i++) {
+    var index = i*2;
+    var angle = degreePerFan * (i+1);
+    //console.log(angle)
+    vertexData[index] =  circle.x + Math.cos(angle) * circle.r;
+    vertexData[index + 1] = circle.y + Math.sin(angle) * circle.r;
+  }
 
-
-  // var tick = function() {
-  //   Time();
-  //   requestAnimationFrame(tick, canvas); // Request that the browser calls tick
-  // };
-  // tick();
-
-// var timer = Date.now();
-// function Time() {
-//   // Calculate the elapsed time
-//   var now = Date.now();
-//   var elapsed = now - timer;
-//   if (elapsed > 5){
-//     console.log(timer + ' true');
-//     return true;
-//   }
-//   else{
-//     timer = now;
-//   }
-// }
+  return vertexData
+}
