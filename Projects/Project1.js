@@ -75,6 +75,8 @@ function main() {
 
   gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
 
+  canvas.onmousedown = function(ev){ click(ev, gl, canvas, a_Position); };
+
   //create play surface
   var origin = {x: 0.0, y: 0.0, r: 0.5}
 
@@ -223,6 +225,18 @@ function StorePoint(x, y){
   vertexData[1] = point.y;
 
   return vertexData;
+}
+
+function click(ev, gl, canvas, a_Position){
+  var x = ev.clientX;
+  var y = ev.clientY;
+  var rect = ev.target.getBoundingClientRect();
+
+  x = ((x - rect.left) - canvas.width/2)/(canvas.width/2);
+  y = (canvas.height/2 - (y - rect.top))/(canvas.height/2);
+
+  console.log('x: ' + x + ', y: ' + y);
+  
 }
 
 //NOTES:
