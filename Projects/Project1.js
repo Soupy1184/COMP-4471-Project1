@@ -1,3 +1,5 @@
+
+
 // RotatingTriangle.js (c) 2012 matsuda
 // Vertex shader program
 var VSHADER_SOURCE =
@@ -6,6 +8,7 @@ var VSHADER_SOURCE =
   'uniform float time;\n' +
   'void main() {\n' +
   '  gl_Position = a_Position;\n' +
+  '   gl_PointSize = 20.0;\n' +
   '}\n';
 
 // Fragment shader program
@@ -19,10 +22,8 @@ var FSHADER_SOURCE =
 //Globals
 var bacteriaCount = 0;
 var timer = Date.now();
-var e = 0;
-
-//colours
-
+var e = 0; // current enum for bacteriaEnumerator
+var bacteriaEnumerator = [];
 
 function main() {
   // Retrieve <canvas> element
@@ -76,61 +77,88 @@ function main() {
 
   //create play surface
   var origin = {x: 0.0, y: 0.0, r: 0.5}
+
+  //create a limit for new bacteria
   var bacteriaLimit = 3; 
-  
-  
+
+  //create colours
+  var rgbaBlue = {rgba1: 0, rgba2: 0, rgba3: 1, rgba4: 1};
+  var rgbaPurple = {rgba1: 1, rgba2: 0, rgba3: 1, rgba4: 1};
+  var rgbaGreen = {rgba1: 0, rgba2: 1, rgba3: 0, rgba4: 1};
+  var rgbaYellow = {rgba1: 1, rgba2: 1, rgba3: 0, rgba4: 1};
+
+  //instantiate bacteria objects
+  var blueBac = new Bacteria("blue", 0, 0, 0, rgbaBlue);
+  var purpleBac = new Bacteria("purple", 0, 0, 0, rgbaPurple);
+  var greenBac = new Bacteria("green", 0, 0, 0, rgbaGreen);
+  var yellowBac = new Bacteria("yellow", 0, 0, 0, rgbaYellow);
+
+  //Enumerator for bacteria objects
+  bacteriaEnumerator = [blueBac, purpleBac, greenBac, yellowBac];
+
+  //to be deleted
   var blue = {c: 'blue', rgba1: 0, rgba2: 0, rgba3: 1, rgba4: 1};
   var purple = {c: 'purple', rgba1: 1, rgba2: 0, rgba3: 1, rgba4: 1};
   var green = {c: 'green', rgba1: 0, rgba2: 1, rgba3: 0, rgba4: 1};
   var yellow = {c: 'yellow', rgba1: 1, rgba2: 1, rgba3: 0, rgba4: 1};
-  var colours = [blue, purple, green, yellow];
+  var colours = [blue, purple, green, yellow]; //to enumerate the bacteria on the play surface
 
   var bacteria = [];
   var bacteriaColour = [];
-  var currentColours = [];
+  var currentBacteria = [];
 
   //LOOP
   function render(time) {
     time *= 0.001;  // convert to seconds
     Time();
-    //console.log(timer);
+    
     CreateCircle(gl, 0, 0, 0.5, 64);
-    gl.uniform4f(u_FragColor, 1, 0, 0, 1);
+    gl.uniform4f(u_FragColor, 0, 0, 0, 1);
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 64);
 
     // tell the shader the time
     gl.uniform1f(timeLoc, time);
     
-    //create new starting bacteria
-    if(bacteriaCount < bacteriaLimit && (elapsed + 1) % 4 == 0){
-      console.log('Drawing circle');
-      var angle = Math.floor(Math.random() * 6);
-      var newBacteria = StoreCircle((origin.r*Math.cos(angle)) + origin.x, (origin.r*Math.sin(angle)) + origin.y, 0.05, 64);
-      var newBacteriaColour = colours[e];
-      console.log(newBacteriaColour);
-
-      //enumerates colours 
-      e++;
-      if(e > 3){
-        e = 0;
+    // grow the bacteria
+    if (bacteria.length != 0){ 
+      if((elapsed + 1) % 4 == 0){
+        for(i = 0; i < bacteria.length; i++){
+          bacteria[i].growthFunction();
+        }
       }
-
-      //stores the new circle(basteria) in an array to be drawn
-      bacteria.push(newBacteria);
-      bacteriaColour.push(newBacteriaColour);
-      currentColours.push(newBacteriaColour.c);
-      
-      bacteriaCount++;
-
-      console.log(currentColours);
     }
 
+    //create new starting bacteria
+    if(bacteriaCount < bacteriaLimit && (elapsed + 1) % 4 == 0){
+      console.log('Drawing new bacteria on the board');
+
+      var angle = Math.floor(Math.random() * 360);
+
+      //store first circle fan vertices in object
+      bacteria.push(bacteriaEnumerator[e]);
+      bacteriaEnumerator[e].addFirstPosition(StoreCircle((origin.r*Math.cos(angle)) + origin.x, (origin.r*Math.sin(angle)) + origin.y, 0.05, 64));
+      bacteriaEnumerator[e].growth++;
+      bacteriaEnumerator[e].minAngle = angle;
+      bacteriaEnumerator[e].maxAngle = angle;
+
+      console.log(bacteria);
+      //enumerates colours 
+      e = EnumerateBacteria(e);
+
+      bacteriaCount++;
+    }
+
+    
+
+    //draw all circles in bacteria 
     if (bacteria.length != 0){ 
-      //draw all circles in bacteria 
+      
       for (i = 0; i < bacteria.length; i++){
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bacteria[i]), gl.STATIC_DRAW);
-        gl.uniform4f(u_FragColor, bacteriaColour[i].rgba1, bacteriaColour[i].rgba2, bacteriaColour[i].rgba3, bacteriaColour[i].rgba4);
-        gl.drawArrays(gl.TRIANGLE_FAN, 0, 64);
+        for (j = 0; j < bacteria[i].positions.length; j++){
+          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bacteria[i].positions[j]), gl.STATIC_DRAW);
+          gl.uniform4f(u_FragColor, bacteria[i].rgba.rgba1, bacteria[i].rgba.rgba2, bacteria[i].rgba.rgba3, bacteria[i].rgba.rgba4);
+          gl.drawArrays(gl.TRIANGLE_FAN, 0, 64);
+        }
       }
     }
     
@@ -146,11 +174,7 @@ function Time() {
   elapsed = now - timer;
   elapsed = Math.floor(elapsed*0.001);
   if (elapsed > 2){
-    console.log(elapsed);
     timer = Date.now();
-  }
-  else{
-    console.log(elapsed);
   }
 }
 
@@ -189,5 +213,22 @@ function StoreCircle(x, y, r, n){
     vertexData[index + 1] = circle.y + Math.sin(angle) * circle.r;
   }
 
-  return vertexData
+  return vertexData;
 }
+
+function StorePoint(x, y){
+  var point = {x: x, y:y};
+  var vertexData = [];
+  vertexData[0] =  point.x;
+  vertexData[1] = point.y;
+
+  return vertexData;
+}
+
+//NOTES:
+  //create a new point
+  //var testPoint = StorePoint(0.9, 0.9);
+  //console.log(testPoint[1]);
+  //gl.vertexAttrib3f(a_Position, testPoint[0], testPoint[1], 0.0);
+  //gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(testPoint), gl.STATIC_DRAW);
+  //gl.drawArrays(gl.POINTS, 0, 1);
