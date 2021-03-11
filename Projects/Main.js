@@ -1,5 +1,3 @@
-
-
 // RotatingTriangle.js (c) 2012 matsuda
 // Vertex shader program
 var VSHADER_SOURCE =
@@ -54,12 +52,7 @@ function main() {
     console.log('Failed to get the storage location');
     return
   }
-
-  
-
   var timeLoc = gl.getUniformLocation(gl.program, 'time');
-  
-  console.log(timeLoc);
 
   var positionBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
@@ -75,7 +68,7 @@ function main() {
 
   gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
 
-  canvas.onmousedown = function(ev){ click(ev, gl, canvas, a_Position); };
+  canvas.onmousedown = function(ev){ click(ev, canvas); };
 
   //create play surface
   var origin = {x: 0.0, y: 0.0, r: 0.5}
@@ -90,6 +83,7 @@ function main() {
   var rgbaYellow = {rgba1: 1, rgba2: 1, rgba3: 0, rgba4: 1};
 
   //instantiate bacteria objects
+  //colour, minAngle, maxAngle, growth, rgba values
   var blueBac = new Bacteria("blue", 0, 0, 0, rgbaBlue);
   var purpleBac = new Bacteria("purple", 0, 0, 0, rgbaPurple);
   var greenBac = new Bacteria("green", 0, 0, 0, rgbaGreen);
@@ -98,23 +92,15 @@ function main() {
   //Enumerator for bacteria objects
   bacteriaEnumerator = [blueBac, purpleBac, greenBac, yellowBac];
 
-  //to be deleted
-  var blue = {c: 'blue', rgba1: 0, rgba2: 0, rgba3: 1, rgba4: 1};
-  var purple = {c: 'purple', rgba1: 1, rgba2: 0, rgba3: 1, rgba4: 1};
-  var green = {c: 'green', rgba1: 0, rgba2: 1, rgba3: 0, rgba4: 1};
-  var yellow = {c: 'yellow', rgba1: 1, rgba2: 1, rgba3: 0, rgba4: 1};
-  var colours = [blue, purple, green, yellow]; //to enumerate the bacteria on the play surface
-
-  var bacteria = [];
-  var bacteriaColour = [];
-  var currentBacteria = [];
+  var bacteria = []; //stores current bacteria on the board;
 
   //LOOP
   function render(time) {
     time *= 0.001;  // convert to seconds
     Time();
     
-    CreateCircle(gl, 0, 0, 0.5, 64);
+    //play surface
+    CreateCircle(gl, 0, 0, 0.5, 64); 
     gl.uniform4f(u_FragColor, 0, 0, 0, 1);
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 64);
 
@@ -150,9 +136,7 @@ function main() {
       bacteriaCount++;
     }
 
-    
-
-    //draw all circles in bacteria 
+    //draw all bacteria
     if (bacteria.length != 0){ 
       
       for (i = 0; i < bacteria.length; i++){
@@ -182,16 +166,13 @@ function Time() {
 
 function CreateCircle(gl, x, y, r, n){
   var circle = {x: x, y:y, r: r};
-  //var ATTRIBUTES = 2;
   var numFans = n;
   var degreePerFan = (2* Math.PI) / numFans;
   var vertexData = [];
 
-  //  console.log(gl_Position)
   for(var i = 0; i <= numFans; i++) {
     var index = i*2;
     var angle = degreePerFan * (i+1);
-    //console.log(angle)
     vertexData[index] =  circle.x + Math.cos(angle) * circle.r;
     vertexData[index + 1] = circle.y + Math.sin(angle) * circle.r;
   }
@@ -201,16 +182,13 @@ function CreateCircle(gl, x, y, r, n){
 
 function StoreCircle(x, y, r, n){
   var circle = {x: x, y:y, r: r};
-  //var ATTRIBUTES = 2;
   var numFans = n;
   var degreePerFan = (2* Math.PI) / numFans;
   var vertexData = [];
 
-  //  console.log(gl_Position)
   for(var i = 0; i <= numFans; i++) {
     var index = i*2;
     var angle = degreePerFan * (i+1);
-    //console.log(angle)
     vertexData[index] =  circle.x + Math.cos(angle) * circle.r;
     vertexData[index + 1] = circle.y + Math.sin(angle) * circle.r;
   }
@@ -218,6 +196,7 @@ function StoreCircle(x, y, r, n){
   return vertexData;
 }
 
+//not needed
 function StorePoint(x, y){
   var point = {x: x, y:y};
   var vertexData = [];
@@ -227,7 +206,7 @@ function StorePoint(x, y){
   return vertexData;
 }
 
-function click(ev, gl, canvas, a_Position){
+function click(ev, canvas){
   var x = ev.clientX;
   var y = ev.clientY;
   var rect = ev.target.getBoundingClientRect();
@@ -236,7 +215,6 @@ function click(ev, gl, canvas, a_Position){
   y = (canvas.height/2 - (y - rect.top))/(canvas.height/2);
 
   console.log('x: ' + x + ', y: ' + y);
-  
 }
 
 //NOTES:
