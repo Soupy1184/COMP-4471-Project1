@@ -1,35 +1,75 @@
 class Bacteria {
     
 
-    constructor(isActive, colour, minAngle, maxAngle, growth, rgba){
+    constructor(isActive, colour, minAngle, maxAngle, rgba, radius){
         this.isActive = isActive;
         this.colour = colour; //colour of bacteria
         this.minAngle = minAngle; 
         this.maxAngle = maxAngle;
-        this.growth = growth; //number of bacteria in the object
+        this.growth = 0; //number of bacteria in the object
         this.rgba = rgba;
-        this.positions = []; //stores vertices for circles
-        this.originCoords = []; //store only the origin coords for each circle in positions array
+        this.growthVerts = []; //stores side vertices
+        this.edges = []; //edge circles
+        this.radius = radius;
+        //this.originCoords = []; //store only the origin coords for each circle in positions array
+        console.log("bacteria radius: " + this.radius + ", " + radius);
     }
 
-    addFirstPosition(firstPosition) {
-        this.positions.push(firstPosition);
-        this.originCoords.push([firstPosition[0], firstPosition[1]]);
+    addFirstPosition() {
+        //minAngle == maxAngle
+        //store first edge circles
+        this.edges[0] = StoreCircle((0.5*Math.cos(this.minAngle)) + 0.0, (0.5*Math.sin(this.minAngle)) + 0.0, this.radius, 12);
+        this.edges[1] = StoreCircle((0.5*Math.cos(this.maxAngle)) + 0.0, (0.5*Math.sin(this.maxAngle)) + 0.0, this.radius, 12);
+        
+        //store first growth verts
+        this.growthVerts.push((0.5 - this.radius) * Math.cos(this.minAngle));
+        this.growthVerts.push((0.5 - this.radius) * Math.sin(this.minAngle));
+        this.growthVerts.push((0.5 + this.radius) * Math.cos(this.minAngle));
+        this.growthVerts.push((0.5 + this.radius) * Math.sin(this.minAngle));
+
+        this.growth = 1;
     }
 
-    growthFunction(){
-        this.minAngle -= 0.01;
-        this.maxAngle += 0.01;
 
+    
+
+    growthFunction(elapsed) {
+        this.minAngle -= 0.0001 * elapsed;
+        this.maxAngle += 0.0001 * elapsed;
+
+        /*
         //grow min angle
-        this.positions.push(StoreCircle((0.5*Math.cos(this.minAngle)) + 0.0, (0.5*Math.sin(this.minAngle)) + 0.0, 0.05, 64));
-        this.originCoords.push([(0.5*Math.cos(this.minAngle)) + 0.0, (0.5*Math.sin(this.minAngle)) + 0.0, 0.05, 64]);
+        this.positions.push(StoreCircle((0.5*Math.cos(this.minAngle)) + 0.0, (0.5*Math.sin(this.minAngle)) + 0.0, 0.05, 12));
+        //this.originCoords.push([(0.5*Math.cos(this.minAngle)) + 0.0, (0.5*Math.sin(this.minAngle)) + 0.0, 0.05, 12]);
         this.growth++;
 
         //grow max angle
-        this.positions.push(StoreCircle((0.5*Math.cos(this.maxAngle)) + 0.0, (0.5*Math.sin(this.maxAngle)) + 0.0, 0.05, 64));
-        this.originCoords.push([(0.5*Math.cos(this.maxAngle)) + 0.0, (0.5*Math.sin(this.maxAngle)) + 0.0, 0.05, 64]);
-        this.growth++;
+        this.positions.push(StoreCircle((0.5*Math.cos(this.maxAngle)) + 0.0, (0.5*Math.sin(this.maxAngle)) + 0.0, 0.05, 12));
+        //this.originCoords.push([(0.5*Math.cos(this.maxAngle)) + 0.0, (0.5*Math.sin(this.maxAngle)) + 0.0, 0.05, 12]);
+        this.growth++;*/
+
+        //move edge circles
+        this.edges[0] = StoreCircle((0.5*Math.cos(this.minAngle)) + 0.0, (0.5*Math.sin(this.minAngle)) + 0.0, this.radius, 12);
+        this.edges[1] = StoreCircle((0.5*Math.cos(this.maxAngle)) + 0.0, (0.5*Math.sin(this.maxAngle)) + 0.0, this.radius, 12);
+        this.growth += 2;
+
+        //add min growth verts
+        this.growthVerts.push((0.5 - this.radius) * Math.cos(this.minAngle));
+        this.growthVerts.push((0.5 - this.radius) * Math.sin(this.minAngle));
+        this.growthVerts.push((0.5 + this.radius) * Math.cos(this.minAngle));
+        this.growthVerts.push((0.5 + this.radius) * Math.sin(this.minAngle));
+
+        //add max growth verts
+        this.growthVerts.unshift((0.5 + this.radius) * Math.sin(this.maxAngle));
+        this.growthVerts.unshift((0.5 + this.radius) * Math.cos(this.maxAngle));
+        this.growthVerts.unshift((0.5 - this.radius) * Math.sin(this.maxAngle));
+        this.growthVerts.unshift((0.5 - this.radius) * Math.cos(this.maxAngle));
+        
+        /*
+        this.growthVerts.push((0.5 - radius) * Math.sin(this.maxAngle));
+        this.growthVerts.push((0.5 + radius) * Math.cos(this.maxAngle));
+        this.growthVerts.push((0.5 + radius) * Math.sin(this.maxAngle));*/
+        
     }
 
     // consumeBacteria(bacteriaPositions, originCoords, newMaxAngle, newMinAngle){
@@ -44,8 +84,9 @@ class Bacteria {
         this.minAngle = 0;
         this.maxAngle = 0;
         this.growth = 0;
-        this.positions = [];
-        this.originCoords = [];
+        this.growthVerts = [];
+        //this.originCoords = [];
+        this.edges = [];
     }
 
 }

@@ -18,7 +18,6 @@ var FSHADER_SOURCE =
   '}\n';
 
 //GLOBALS
-var bacteriaCount = 0;
 var timer = Date.now();
 var e = 0; // current enum for bacteriaEnumerator
 var bacteriaEnumerator = [];
@@ -86,15 +85,18 @@ function main() {
 
   //instantiate bacteria objects
   //colour, minAngle, maxAngle, growth, rgba values
-  var blueBac = new Bacteria(false, "blue", 0, 0, 0, rgbaBlue);
-  var purpleBac = new Bacteria(false, "purple", 0, 0, 0, rgbaPurple);
-  var greenBac = new Bacteria(false, "green", 0, 0, 0, rgbaGreen);
-  var yellowBac = new Bacteria(false, "yellow", 0, 0, 0, rgbaYellow);
-
+  console.log("create enum");
+  var blueBac = new Bacteria(false, "blue", 0, 0, rgbaBlue, 0.05);
+  var purpleBac = new Bacteria(false, "purple", 0, 0, rgbaPurple, 0.05);
+  var greenBac = new Bacteria(false, "green", 0, 0, rgbaGreen, 0.05);
+  var yellowBac = new Bacteria(false, "yellow", 0, 0, rgbaYellow, 0.05);
+  console.log("created");
   //Enumerator for bacteria objects
   bacteriaEnumerator = [blueBac, purpleBac, greenBac, yellowBac];
 
   var bacteria = []; //stores current bacteria on the board;
+
+
 
   //LOOP
   function render(time) {
@@ -102,21 +104,18 @@ function main() {
     Time();
     
     //play surface
-    CreateCircle(gl, 0, 0, 0.5, 64); 
+    CreateCircle(gl, 0, 0, 0.5, 32); 
     gl.uniform4f(u_FragColor, 0, 0, 0, 1);
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 64);
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, 32);
 
     // tell the shader the time
     gl.uniform1f(timeLoc, time);
     
-    // grow the bacteria
-    if (bacteria.length != 0){ 
-      if((elapsed + 1) % 4 == 0){
-        for(i = 0; i < bacteria.length; i++){
-          bacteria[i].growthFunction();
-        }
-      }
+    // grow the bacteria using the time passed as a parameter for how much to grow on that frame
+    for(i = 0; i < bacteria.length; i++){
+      bacteria[i].growthFunction(time);
     }
+      
 
     //check for bacteria conllision
     for (i = 0; i < bacteria.length; i++){
@@ -141,7 +140,6 @@ function main() {
           if (distance <= 0.1){
             // bacteria[i].consumeBacteria(bacteria[j].positions, bacteria[j].maxAngle, bacteria[i].minAngle);
             bacteria[j].getConsumed();
-            bacteriaCount--;
           }
 
           //curren bacteria distance for minAngle
@@ -149,7 +147,6 @@ function main() {
           if (distance <= 0.1){
             // bacteria[i].consumeBacteria(bacteria[j].positions, bacteria[j].originCoords, bacteria[i].maxAngle, bacteria[j].minAngle);
             bacteria[j].getConsumed();
-            bacteriaCount--;
           }
         }
       }
@@ -157,37 +154,59 @@ function main() {
     }
 
     //create new starting bacteria
-    if(bacteriaCount < bacteriaLimit && (elapsed + 1) % 4 == 0){
+    if(bacteria.length < bacteriaLimit && (elapsed + 1) % 4 == 0){
       console.log('Drawing new bacteria on the board');
 
       var angle = Math.floor(Math.random() * 360);
+      
       if (!bacteriaEnumerator[e].isActive){
         //store first circle fan vertices in object
         bacteria.push(bacteriaEnumerator[e]);
-        bacteriaEnumerator[e].addFirstPosition(StoreCircle((origin.r*Math.cos(angle)) + origin.x, (origin.r*Math.sin(angle)) + origin.y, 0.05, 64));
         bacteriaEnumerator[e].isActive = true;
-        bacteriaEnumerator[e].growth++;
+        //bacteriaEnumerator[e].growth++;
         bacteriaEnumerator[e].minAngle = angle;
         bacteriaEnumerator[e].maxAngle = angle;
-        bacteriaCount++;
+        bacteriaEnumerator[e].addFirstPosition();
 
         console.log(bacteria); 
       }
       //enumerates colours 
       e = EnumerateBacteria(e);
       console.log(e);
+
+      
     }
 
     //draw all bacteria
     if (bacteria.length != 0){ 
-      
+      /*
       for (i = 0; i < bacteria.length; i++){
         for (j = 0; j < bacteria[i].positions.length; j++){
           gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bacteria[i].positions[j]), gl.STATIC_DRAW);
           gl.uniform4f(u_FragColor, bacteria[i].rgba.rgba1, bacteria[i].rgba.rgba2, bacteria[i].rgba.rgba3, bacteria[i].rgba.rgba4);
-          gl.drawArrays(gl.TRIANGLE_FAN, 0, 64);
+          gl.drawArrays(gl.TRIANGLE_FAN, 0, 12);
         }
+        
       }
+      */
+      for (i = 0; i < bacteria.length; i++){
+        //draw edge circles
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bacteria[i].edges[0]), gl.STATIC_DRAW);
+        gl.uniform4f(u_FragColor, bacteria[i].rgba.rgba1, bacteria[i].rgba.rgba2, bacteria[i].rgba.rgba3, bacteria[i].rgba.rgba4);
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, 12);
+
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bacteria[i].edges[1]), gl.STATIC_DRAW);
+        gl.uniform4f(u_FragColor, bacteria[i].rgba.rgba1, bacteria[i].rgba.rgba2, bacteria[i].rgba.rgba3, bacteria[i].rgba.rgba4);
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, 12);
+
+
+
+
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bacteria[i].growthVerts), gl.STATIC_DRAW);
+        gl.uniform4f(u_FragColor, bacteria[i].rgba.rgba1, bacteria[i].rgba.rgba2, bacteria[i].rgba.rgba3, bacteria[i].rgba.rgba4);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, bacteria[i].growthVerts.length);
+      }
+
     }
     
     //END GAME CRITERIA
@@ -227,15 +246,13 @@ function Time() {
 
 function CreateCircle(gl, x, y, r, n){
   var circle = {x: x, y:y, r: r};
-  var numFans = n;
-  var degreePerFan = (2* Math.PI) / numFans;
-  var vertexData = [];
+  var degreePerFan = (2 * Math.PI) / (n - 2);
+  var vertexData = [x, y]; //origin
 
-  for(var i = 0; i <= numFans; i++) {
-    var index = i*2;
+  for(var i = 1; i < n; i++) {
     var angle = degreePerFan * (i+1);
-    vertexData[index] =  circle.x + Math.cos(angle) * circle.r;
-    vertexData[index + 1] = circle.y + Math.sin(angle) * circle.r;
+    vertexData[i*2] =  circle.x + Math.cos(angle) * circle.r;
+    vertexData[(i*2) + 1] = circle.y + Math.sin(angle) * circle.r;
   }
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexData), gl.STATIC_DRAW);
@@ -243,15 +260,13 @@ function CreateCircle(gl, x, y, r, n){
 
 function StoreCircle(x, y, r, n){
   var circle = {x: x, y:y, r: r};
-  var numFans = n;
-  var degreePerFan = (2* Math.PI) / numFans;
-  var vertexData = [];
+  var degreePerFan = (2 * Math.PI) / (n - 2);
+  var vertexData = [x, y]; //origin
 
-  for(var i = 0; i <= numFans; i++) {
-    var index = i*2;
+  for(var i = 1; i < n; i++) {
     var angle = degreePerFan * (i+1);
-    vertexData[index] =  circle.x + Math.cos(angle) * circle.r;
-    vertexData[index + 1] = circle.y + Math.sin(angle) * circle.r;
+    vertexData[i*2] =  circle.x + Math.cos(angle) * circle.r;
+    vertexData[(i*2) + 1] = circle.y + Math.sin(angle) * circle.r;
   }
 
   return vertexData;
