@@ -204,7 +204,7 @@ function main() {
 
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bacteria[i].growthVerts), gl.STATIC_DRAW);
         gl.uniform4f(u_FragColor, bacteria[i].rgba.rgba1, bacteria[i].rgba.rgba2, bacteria[i].rgba.rgba3, bacteria[i].rgba.rgba4);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, bacteria[i].growthVerts.length);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, Math.floor(bacteria[i].growthVerts.length / 2.0));
       }
 
     }

@@ -6,7 +6,6 @@ class Bacteria {
         this.colour = colour; //colour of bacteria
         this.minAngle = minAngle; 
         this.maxAngle = maxAngle;
-        this.growth = 0; //number of bacteria in the object
         this.rgba = rgba;
         this.growthVerts = []; //stores side vertices
         this.edges = []; //edge circles
@@ -26,8 +25,6 @@ class Bacteria {
         this.growthVerts.push((0.5 - this.radius) * Math.sin(this.minAngle));
         this.growthVerts.push((0.5 + this.radius) * Math.cos(this.minAngle));
         this.growthVerts.push((0.5 + this.radius) * Math.sin(this.minAngle));
-
-        this.growth = 1;
     }
 
 
@@ -51,7 +48,6 @@ class Bacteria {
         //move edge circles
         this.edges[0] = StoreCircle((0.5*Math.cos(this.minAngle)) + 0.0, (0.5*Math.sin(this.minAngle)) + 0.0, this.radius, 12);
         this.edges[1] = StoreCircle((0.5*Math.cos(this.maxAngle)) + 0.0, (0.5*Math.sin(this.maxAngle)) + 0.0, this.radius, 12);
-        this.growth += 2;
 
         //add min growth verts
         this.growthVerts.push((0.5 - this.radius) * Math.cos(this.minAngle));
@@ -83,7 +79,6 @@ class Bacteria {
         this.isActive = false;
         this.minAngle = 0;
         this.maxAngle = 0;
-        this.growth = 0;
         this.growthVerts = [];
         //this.originCoords = [];
         this.edges = [];
