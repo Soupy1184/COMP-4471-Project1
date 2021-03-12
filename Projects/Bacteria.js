@@ -1,7 +1,8 @@
 class Bacteria {
     
 
-    constructor(colour, minAngle, maxAngle, growth, rgba){
+    constructor(isActive, colour, minAngle, maxAngle, growth, rgba){
+        this.isActive = isActive;
         this.colour = colour; //colour of bacteria
         this.minAngle = minAngle; //
         this.maxAngle = maxAngle;
@@ -29,6 +30,10 @@ class Bacteria {
         this.positions.push(StoreCircle((0.5*Math.cos(this.maxAngle)) + 0.0, (0.5*Math.sin(this.maxAngle)) + 0.0, 0.05, 64));
         this.originCoords.push([(0.5*Math.cos(this.maxAngle)) + 0.0, (0.5*Math.sin(this.maxAngle)) + 0.0, 0.05, 64]);
         this.growth++;
+    }
+
+    consumeBacteria(bacteriaPositions){
+        this.positions.concat(bacteriaPositions);
     }
 
 }

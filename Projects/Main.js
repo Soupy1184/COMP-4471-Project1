@@ -22,6 +22,7 @@ var bacteriaCount = 0;
 var timer = Date.now();
 var e = 0; // current enum for bacteriaEnumerator
 var bacteriaEnumerator = [];
+var gameIsActive = true;
 
 function main() {
   // Retrieve <canvas> element
@@ -84,10 +85,10 @@ function main() {
 
   //instantiate bacteria objects
   //colour, minAngle, maxAngle, growth, rgba values
-  var blueBac = new Bacteria("blue", 0, 0, 0, rgbaBlue);
-  var purpleBac = new Bacteria("purple", 0, 0, 0, rgbaPurple);
-  var greenBac = new Bacteria("green", 0, 0, 0, rgbaGreen);
-  var yellowBac = new Bacteria("yellow", 0, 0, 0, rgbaYellow);
+  var blueBac = new Bacteria(false, "blue", 0, 0, 0, rgbaBlue);
+  var purpleBac = new Bacteria(false, "purple", 0, 0, 0, rgbaPurple);
+  var greenBac = new Bacteria(false, "green", 0, 0, 0, rgbaGreen);
+  var yellowBac = new Bacteria(false, "yellow", 0, 0, 0, rgbaYellow);
 
   //Enumerator for bacteria objects
   bacteriaEnumerator = [blueBac, purpleBac, greenBac, yellowBac];
@@ -125,6 +126,7 @@ function main() {
       //store first circle fan vertices in object
       bacteria.push(bacteriaEnumerator[e]);
       bacteriaEnumerator[e].addFirstPosition(StoreCircle((origin.r*Math.cos(angle)) + origin.x, (origin.r*Math.sin(angle)) + origin.y, 0.05, 64));
+      bacteriaEnumerator[e].isActive = true;
       bacteriaEnumerator[e].growth++;
       bacteriaEnumerator[e].minAngle = angle;
       bacteriaEnumerator[e].maxAngle = angle;
@@ -148,7 +150,22 @@ function main() {
       }
     }
     
-    requestAnimationFrame(render);
+    //END GAME CRITERIA
+    //check to see min/max angle threshold
+    for (i = 0; i < bacteria.length; i++){
+      count = 0;
+      if (bacteria[i].maxAngle - bacteria[i].minAngle >= 2){
+        count++;  
+      }
+      if (count >= 1.5){
+        console.log('The bacteria have run rampant! They\'re beyond your control');
+        gameIsActive = false;
+      }
+    }
+    
+    if (gameIsActive){
+      requestAnimationFrame(render);
+    }
   }
   requestAnimationFrame(render);
 }
