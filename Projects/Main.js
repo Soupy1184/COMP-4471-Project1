@@ -17,12 +17,13 @@ var FSHADER_SOURCE =
   '  gl_FragColor = u_FragColor;\n' +
   '}\n';
 
-//Globals
+//GLOBALS
 var bacteriaCount = 0;
 var timer = Date.now();
 var e = 0; // current enum for bacteriaEnumerator
 var bacteriaEnumerator = [];
 var gameIsActive = true;
+var bigBacteria = false;
 
 function main() {
   // Retrieve <canvas> element
@@ -117,25 +118,64 @@ function main() {
       }
     }
 
+    //check for bacteria conllision
+    for (i = 0; i < bacteria.length; i++){
+      //get xy coords on current bacteria maxAngle
+      var currentBacXMax = 0.5 * Math.cos(bacteria[i].maxAngle);
+      var currentBacYMax = 0.5 * Math.sin(bacteria[i].maxAngle);
+      //get xy coords on current bacteria minAngle
+      var currentBacXMin = 0.5 * Math.cos(bacteria[i].minAngle);
+      var currentBacYMin = 0.5 * Math.sin(bacteria[i].minAngle);
+
+      for (j = 0; j < bacteria.length; j++){
+        //skip bacteria with the same colour
+        if(bacteria[i].colour != bacteria[j].colour){
+          var testBacXMax = 0.5 * Math.cos(bacteria[j].maxAngle);
+          var testBacYMax = 0.5 * Math.sin(bacteria[j].maxAngle);
+          //get xy coords on current bacteria minAngle
+          var testBacXMin = 0.5 * Math.cos(bacteria[j].minAngle);
+          var testBacYMin = 0.5 * Math.sin(bacteria[j].minAngle);
+
+          //current bacteria distance for maxAngle
+          var distance = EuclideanDistance([currentBacXMax, currentBacYMax], [testBacXMin, testBacYMin]);
+          if (distance <= 0.1){
+            // bacteria[i].consumeBacteria(bacteria[j].positions, bacteria[j].maxAngle, bacteria[i].minAngle);
+            bacteria[j].getConsumed();
+            bacteriaCount--;
+          }
+
+          //curren bacteria distance for minAngle
+          var distance = EuclideanDistance([currentBacXMin, currentBacYMin], [testBacXMax, testBacYMax]);
+          if (distance <= 0.1){
+            // bacteria[i].consumeBacteria(bacteria[j].positions, bacteria[j].originCoords, bacteria[i].maxAngle, bacteria[j].minAngle);
+            bacteria[j].getConsumed();
+            bacteriaCount--;
+          }
+        }
+      }
+
+    }
+
     //create new starting bacteria
     if(bacteriaCount < bacteriaLimit && (elapsed + 1) % 4 == 0){
       console.log('Drawing new bacteria on the board');
 
       var angle = Math.floor(Math.random() * 360);
+      if (!bacteriaEnumerator[e].isActive){
+        //store first circle fan vertices in object
+        bacteria.push(bacteriaEnumerator[e]);
+        bacteriaEnumerator[e].addFirstPosition(StoreCircle((origin.r*Math.cos(angle)) + origin.x, (origin.r*Math.sin(angle)) + origin.y, 0.05, 64));
+        bacteriaEnumerator[e].isActive = true;
+        bacteriaEnumerator[e].growth++;
+        bacteriaEnumerator[e].minAngle = angle;
+        bacteriaEnumerator[e].maxAngle = angle;
+        bacteriaCount++;
 
-      //store first circle fan vertices in object
-      bacteria.push(bacteriaEnumerator[e]);
-      bacteriaEnumerator[e].addFirstPosition(StoreCircle((origin.r*Math.cos(angle)) + origin.x, (origin.r*Math.sin(angle)) + origin.y, 0.05, 64));
-      bacteriaEnumerator[e].isActive = true;
-      bacteriaEnumerator[e].growth++;
-      bacteriaEnumerator[e].minAngle = angle;
-      bacteriaEnumerator[e].maxAngle = angle;
-
-      console.log(bacteria);
+        console.log(bacteria); 
+      }
       //enumerates colours 
       e = EnumerateBacteria(e);
-
-      bacteriaCount++;
+      console.log(e);
     }
 
     //draw all bacteria
@@ -154,10 +194,14 @@ function main() {
     //check to see min/max angle threshold
     for (i = 0; i < bacteria.length; i++){
       count = 0;
-      if (bacteria[i].maxAngle - bacteria[i].minAngle >= 2){
+      
+      if (bacteria[i].maxAngle - bacteria[i].minAngle >= 1.8 ){
         count++;  
       }
-      if (count >= 1.5){
+      else if(bacteria[i].maxAngle - bacteria[i].minAngle >= 3.6){
+        bigBacteria = true;
+      }
+      if (count >= 2 || bigBacteria){
         console.log('The bacteria have run rampant! They\'re beyond your control');
         gameIsActive = false;
       }

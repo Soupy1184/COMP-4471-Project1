@@ -4,12 +4,12 @@ class Bacteria {
     constructor(isActive, colour, minAngle, maxAngle, growth, rgba){
         this.isActive = isActive;
         this.colour = colour; //colour of bacteria
-        this.minAngle = minAngle; //
+        this.minAngle = minAngle; 
         this.maxAngle = maxAngle;
         this.growth = growth; //number of bacteria in the object
         this.rgba = rgba;
-        this.positions = [];
-        this.originCoords = [];
+        this.positions = []; //stores vertices for circles
+        this.originCoords = []; //store only the origin coords for each circle in positions array
     }
 
     addFirstPosition(firstPosition) {
@@ -32,8 +32,20 @@ class Bacteria {
         this.growth++;
     }
 
-    consumeBacteria(bacteriaPositions){
-        this.positions.concat(bacteriaPositions);
+    // consumeBacteria(bacteriaPositions, originCoords, newMaxAngle, newMinAngle){
+    //     this.positions.concat(bacteriaPositions);
+    //     this.originCoords.concat(originCoords);
+    //     this.maxAngle = newMaxAngle;
+    //     this.minAngle = newMinAngle;
+    // }
+
+    getConsumed(){
+        this.isActive = false;
+        this.minAngle = 0;
+        this.maxAngle = 0;
+        this.growth = 0;
+        this.positions = [];
+        this.originCoords = [];
     }
 
 }
