@@ -19,7 +19,7 @@ class Bacteria {
         var array1 = this.originCoords.slice(0, target);
         var array2 = this.originCoords.slice(target, this.originCoords.length);
         array2.shift();
-        array1.concat(array2);
+        this.originCoords = array1.concat(array2);
 
         //do the same for circles
 
