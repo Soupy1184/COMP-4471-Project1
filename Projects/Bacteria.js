@@ -61,7 +61,7 @@ class Bacteria {
     isWithin(angleNum) {
         if(angleNum >= this.minAngle && angleNum <= this.maxAngle) {
             return true;
-        } else if(this.maxAngle < this.minAngle && angleNum >= this.minAngle) {
+        } else if(this.maxAngle < this.minAngle && angleNum <= this.maxAngle) {
             return true;
         } else {
             return false;
