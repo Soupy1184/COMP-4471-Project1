@@ -49,6 +49,14 @@ class Bacteria {
         return "" + this.minAngle + " and <br>" + this.maxAngle;
     }
 
+    getSize() {
+        if(this.minAngle > this.maxAngle) {
+            return this.maxAngle - (this.minAngle - (2*Math.PI));
+        } else {
+            return this.maxAngle - this.minAngle;
+        }
+    }
+
     //get whether an angle 
     isWithin(angleNum) {
         if(angleNum >= this.minAngle && angleNum <= this.maxAngle) {
@@ -61,8 +69,8 @@ class Bacteria {
     }
 
     growthFunction(elapsed) {
-        this.minAngle -= 0.0001 * elapsed;
-        this.maxAngle += 0.0001 * elapsed;
+        this.minAngle -= 0.1 * elapsed;
+        this.maxAngle += 0.1 * elapsed;
 
         if(this.minAngle < 0) {
             this.minAngle += 2 * Math.PI;

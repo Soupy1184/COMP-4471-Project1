@@ -67,21 +67,18 @@ function main() {
 
   gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
 
-  
-
-  //create play surface
-  var origin = {x: 0.0, y: 0.0, r: 0.5}
-
   //create a limit for new bacteria
   var bacteriaLimit = 3; 
 
   var bacteria = []; //stores current bacteria on the board;
 
+  var el = 0;
+
   //LOOP
   function render(time) {
     time *= 0.001;  // convert to seconds
     Time();
-    
+
     canvas.onmousedown = function(ev){ click(ev, canvas, bacteria); };
 
     //play surface
@@ -94,69 +91,57 @@ function main() {
     
     // grow the bacteria using the time passed as a parameter for how much to grow on that frame
     for(i = 0; i < bacteria.length; i++){
-      bacteria[i].growthFunction(time);
+      bacteria[i].growthFunction(time - el);
     }
 
-    if(bacteria.length > 0) {
-      document.getElementById('disp').innerHTML = bacteria[0].getAngle();
-    }
+    
+    //document.getElementById('disp').innerHTML = time + "<br>" + (time - el) ;
+    
 
 
 
     //check for bacteria conllision
-    for (i = 0; i < bacteria.length; i++){
-      //get xy coords on current bacteria maxAngle
-      var currentBacXMax = 0.5 * Math.cos(bacteria[i].maxAngle);
-      var currentBacYMax = 0.5 * Math.sin(bacteria[i].maxAngle);
-      //get xy coords on current bacteria minAngle
-      var currentBacXMin = 0.5 * Math.cos(bacteria[i].minAngle);
-      var currentBacYMin = 0.5 * Math.sin(bacteria[i].minAngle);
-
-      for (j = 0; j < bacteria.length; j++){
-        //skip bacteria with the same colour
-        if(bacteria[i].colour != bacteria[j].colour){
-          var testBacXMax = 0.5 * Math.cos(bacteria[j].maxAngle);
-          var testBacYMax = 0.5 * Math.sin(bacteria[j].maxAngle);
-          //get xy coords on current bacteria minAngle
-          var testBacXMin = 0.5 * Math.cos(bacteria[j].minAngle);
-          var testBacYMin = 0.5 * Math.sin(bacteria[j].minAngle);
-
-          //current bacteria distance for maxAngle
-          var distance = EuclideanDistance([currentBacXMax, currentBacYMax], [testBacXMin, testBacYMin]);
-          if (distance <= 0.1){
-            // bacteria[i].consumeBacteria(bacteria[j].positions, bacteria[j].maxAngle, bacteria[i].minAngle);
-            bacteria[j].getConsumed();
+    for (i = 0; i < bacteria.length - 1; i++){
+      for(j = i + 1; j < bacteria.length; j++) {
+        if(bacteria[j].isWithin(bacteria[i].minAngle)) {  //bac[i] is inside bac[j]
+          //console.log("bac j: " + bacteria[j].getSize() + "\tbac i" + bacteria[i].getSize());
+          //console.log(bacteria); 
+          if(bacteria[j].getSize() > bacteria[i].getSize()) { // if bac[j] > bac[i]
+            bacteria.splice(i, 1); //remove bac[i]
+          } else {
+            bacteria.splice(j, 1); //remove bac[j]
           }
-
-          //curren bacteria distance for minAngle
-          var distance = EuclideanDistance([currentBacXMin, currentBacYMin], [testBacXMax, testBacYMax]);
-          if (distance <= 0.1){
-            // bacteria[i].consumeBacteria(bacteria[j].positions, bacteria[j].originCoords, bacteria[i].maxAngle, bacteria[j].minAngle);
-            bacteria[j].getConsumed();
+        } else if(bacteria[j].isWithin(bacteria[i].maxAngle)) {
+          //console.log("bac j: " + bacteria[j].getSize() + "\tbac i" + bacteria[i].getSize());
+          //console.log(bacteria); 
+          if(bacteria[j].getSize() > bacteria[i].getSize()) { // if bac[j] > bac[i]
+            bacteria.splice(i, 1); //remove bac[i]
+          } else {
+            bacteria.splice(j, 1); //remove bac[j]
           }
         }
       }
-
     }
 
     //create new starting bacteria
     if(bacteria.length < bacteriaLimit && (elapsed + 1) % 4 == 0){
       console.log('Drawing new bacteria on the board');
 
-      for(i = 0; i < 10; i++) {
+      //try 16 times to create a bacteria not within other bacteria
+      //if one is not found, give up
+      var insideBac = true;
+      for(i = 0; i < 10 && insideBac; i++) {
+        insideBac = false;
         var angle = Math.floor(Math.random() * 2 * Math.PI);
-        var insideBac = false;
         for(j = 0; j < bacteria.length; j++) {
           if(bacteria[j].isWithin(angle)) {
             insideBac = true;
           }
         }
-        if(!insideBac) {
-          break;
-        }
       }
-      
-      bacteria.push(new Bacteria(angle, [Math.random(), Math.random(), Math.random(), (Math.random()*0.5)+0.5], 0.05));
+      if(!insideBac) {
+        bacteria.push(new Bacteria(angle, [Math.random(), Math.random(), Math.random(), (Math.random()*0.5)+0.5], 0.05));
+      }
 
       console.log(bacteria); 
     }
@@ -192,6 +177,8 @@ function main() {
         gameIsActive = false;
       }
     }
+
+    el = time;
     
     if (gameIsActive){
       requestAnimationFrame(render);
@@ -239,16 +226,6 @@ function StoreCircle(x, y, r, n){
   return vertexData;
 }
 
-//not needed
-function StorePoint(x, y){
-  var point = {x: x, y:y};
-  var vertexData = [];
-  vertexData[0] =  point.x;
-  vertexData[1] = point.y;
-
-  return vertexData;
-}
-
 function click(ev, canvas, bacteria){
   var x = ev.clientX;
   var y = ev.clientY;
@@ -259,6 +236,7 @@ function click(ev, canvas, bacteria){
 
   var target = 0;
   for (i = 0; i < bacteria.length; i++){
+    /*
     for (j = 0; j < bacteria.originCoords.length; j++){
       var distance = EuclideanDistance([x, y], bacteria.originCoords[j]);
       if (distance < 0.05){
@@ -266,7 +244,8 @@ function click(ev, canvas, bacteria){
         console.log('Bacteria killed at -> x: ' + x + ', y: ' + y);
         break;
       }
-    }
+    }*/
+
   }
   
 }
