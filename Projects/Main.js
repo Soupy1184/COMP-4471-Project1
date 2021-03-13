@@ -20,7 +20,7 @@ var FSHADER_SOURCE =
 //GLOBALS
 var timer = Date.now();
 var gameIsActive = true;
-var bigBacteria = false;
+var score = 0; //player score
 
 function main() {
   // Retrieve <canvas> element
@@ -95,7 +95,7 @@ function main() {
     }
 
     
-    //document.getElementById('disp').innerHTML = time + "<br>" + (time - el) ;
+    document.getElementById('score').innerHTML = "Score: " + Math.floor(score * 10);
     
 
 
@@ -104,28 +104,33 @@ function main() {
     for (i = 0; i < bacteria.length - 1; i++){
       for(j = i + 1; j < bacteria.length; j++) {
         if(bacteria[j].isWithin(bacteria[i].minAngle)) {  //bac[i] is inside bac[j]
-          //console.log("bac j: " + bacteria[j].getSize() + "\tbac i" + bacteria[i].getSize());
-          //console.log(bacteria); 
           if(bacteria[j].getSize() > bacteria[i].getSize()) { // if bac[j] > bac[i]
+            //subtract from score according to the smaller bacteria's size
+            score -= (bacteria[i].getSize() / 2);
             bacteria.splice(i, 1); //remove bac[i]
           } else {
+            //subtract from score according to the smaller bacteria's size
+            score -= (bacteria[j].getSize() / 2);
             bacteria.splice(j, 1); //remove bac[j]
           }
+          console.log(bacteria);
         } else if(bacteria[j].isWithin(bacteria[i].maxAngle)) {
-          //console.log("bac j: " + bacteria[j].getSize() + "\tbac i" + bacteria[i].getSize());
-          //console.log(bacteria); 
           if(bacteria[j].getSize() > bacteria[i].getSize()) { // if bac[j] > bac[i]
+            //subtract from score according to the smaller bacteria's size
+            score -= (bacteria[i].getSize() / 2);
             bacteria.splice(i, 1); //remove bac[i]
           } else {
+            //subtract from score according to the smaller bacteria's size
+            score -= (bacteria[j].getSize() / 2);
             bacteria.splice(j, 1); //remove bac[j]
           }
+          console.log(bacteria);
         }
       }
     }
 
     //create new starting bacteria
     if(bacteria.length < bacteriaLimit && (elapsed + 1) % 4 == 0){
-      console.log('Drawing new bacteria on the board');
 
       //try 16 times to create a bacteria not within other bacteria
       //if one is not found, give up
@@ -164,18 +169,13 @@ function main() {
     //END GAME CRITERIA
     //check to see min/max angle threshold
     for (i = 0; i < bacteria.length; i++){
-      count = 0;
-      
-      if (bacteria[i].maxAngle - bacteria[i].minAngle >= 1.8 ){
-        count++;  
-      }
-      else if(bacteria[i].maxAngle - bacteria[i].minAngle >= 3.6){
-        bigBacteria = true;
-      }
-      if (count >= 2 || bigBacteria){
-        console.log('The bacteria have run rampant! They\'re beyond your control');
+      if (bacteria[i].getSize() > Math.PI) {
+        console.log('Now that\'s one huge bacteria! They\'re beyond your control');
         gameIsActive = false;
       }
+    }
+    if(bacteria.length > 5) {
+      console.log('There are too many bacteria! They\'re beyond your control')
     }
 
     el = time;
@@ -244,10 +244,11 @@ function click(ev, canvas, bacteria){
     } else {
       clickAngle = Math.PI + clickAngle;
     }
-    console.log(clickAngle);
     for(i = 0; i < bacteria.length; i++) {
       if(bacteria[i].isWithin(clickAngle)) {
+        score += bacteria[i].getSize();
         bacteria.splice(i, 1);
+        console.log(bacteria);
       }
     }
 
