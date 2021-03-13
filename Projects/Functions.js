@@ -1,12 +1,3 @@
-//enumerates the colours
-function EnumerateBacteria(e){
-    e++;
-      if(e > 3){
-        e = 0;
-    }
-    return e;
-}
-
 //calculates euclid distance
 function EuclideanDistance(a, b){
     distance = 0;

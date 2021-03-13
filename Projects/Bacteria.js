@@ -1,17 +1,17 @@
 class Bacteria {
     
 
-    constructor(isActive, colour, minAngle, maxAngle, rgba, radius){
-        this.isActive = isActive;
-        this.colour = colour; //colour of bacteria
-        this.minAngle = minAngle; 
-        this.maxAngle = maxAngle;
-        this.rgba = rgba;
+    constructor(angle,  rgba, radius){
+        this.minAngle = angle; 
+        this.maxAngle = angle;
+        this.r = rgba[0];
+        this.g = rgba[1];
+        this.b = rgba[2];
+        this.a = rgba[3];
         this.growthVerts = []; //stores side vertices
         this.edges = []; //edge circles
         this.radius = radius;
         this.originCoords = []; //store only the origin coords for each circle in positions array
-        console.log("bacteria radius: " + this.radius + ", " + radius);
     }
 
     kill(target){
@@ -45,43 +45,50 @@ class Bacteria {
         this.growthVerts.push((0.5 + this.radius) * Math.sin(this.minAngle));
     }
 
+    getAngle() {
+        return "" + this.minAngle + " and <br>" + this.maxAngle;
+    }
+
+    //get whether an angle 
+    isWithin(angleNum) {
+        if(angleNum >= this.minAngle && angleNum <= this.maxAngle) {
+            return true;
+        } else if(this.maxAngle < this.minAngle && angleNum >= this.minAngle) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     growthFunction(elapsed) {
         this.minAngle -= 0.0001 * elapsed;
         this.maxAngle += 0.0001 * elapsed;
 
-        /*
-        //grow min angle
-        this.positions.push(StoreCircle((0.5*Math.cos(this.minAngle)) + 0.0, (0.5*Math.sin(this.minAngle)) + 0.0, 0.05, 12));
-        //this.originCoords.push([(0.5*Math.cos(this.minAngle)) + 0.0, (0.5*Math.sin(this.minAngle)) + 0.0, 0.05, 12]);
-        this.growth++;
-
-        //grow max angle
-        this.positions.push(StoreCircle((0.5*Math.cos(this.maxAngle)) + 0.0, (0.5*Math.sin(this.maxAngle)) + 0.0, 0.05, 12));
-        //this.originCoords.push([(0.5*Math.cos(this.maxAngle)) + 0.0, (0.5*Math.sin(this.maxAngle)) + 0.0, 0.05, 12]);
-        this.growth++;*/
-        if (this.isActive){
-            //move edge circles
-            this.edges[0] = StoreCircle((0.5*Math.cos(this.minAngle)) + 0.0, (0.5*Math.sin(this.minAngle)) + 0.0, this.radius, 12);
-            this.edges[1] = StoreCircle((0.5*Math.cos(this.maxAngle)) + 0.0, (0.5*Math.sin(this.maxAngle)) + 0.0, this.radius, 12);
-
-            //add min growth verts
-            this.growthVerts.push((0.5 - this.radius) * Math.cos(this.minAngle));
-            this.growthVerts.push((0.5 - this.radius) * Math.sin(this.minAngle));
-            this.growthVerts.push((0.5 + this.radius) * Math.cos(this.minAngle));
-            this.growthVerts.push((0.5 + this.radius) * Math.sin(this.minAngle));
-
-            //add max growth verts
-            this.growthVerts.unshift((0.5 + this.radius) * Math.sin(this.maxAngle));
-            this.growthVerts.unshift((0.5 + this.radius) * Math.cos(this.maxAngle));
-            this.growthVerts.unshift((0.5 - this.radius) * Math.sin(this.maxAngle));
-            this.growthVerts.unshift((0.5 - this.radius) * Math.cos(this.maxAngle));
+        if(this.minAngle < 0) {
+            this.minAngle += 2 * Math.PI;
         }
+        if(this.maxAngle > 2 * Math.PI) {
+            this.maxAngle -= 2 * Math.PI;
+        }
+
+        //move edge circles
+        this.edges[0] = StoreCircle((0.5*Math.cos(this.minAngle)) + 0.0, (0.5*Math.sin(this.minAngle)) + 0.0, this.radius, 12);
+        this.edges[1] = StoreCircle((0.5*Math.cos(this.maxAngle)) + 0.0, (0.5*Math.sin(this.maxAngle)) + 0.0, this.radius, 12);
+
+
+        //add min growth verts
+        this.growthVerts.push((0.5 - this.radius) * Math.cos(this.minAngle));
+        this.growthVerts.push((0.5 - this.radius) * Math.sin(this.minAngle));
+        this.growthVerts.push((0.5 + this.radius) * Math.cos(this.minAngle));
+        this.growthVerts.push((0.5 + this.radius) * Math.sin(this.minAngle));
+        
+        //add max growth verts
+        this.growthVerts.unshift((0.5 + this.radius) * Math.sin(this.maxAngle));
+        this.growthVerts.unshift((0.5 + this.radius) * Math.cos(this.maxAngle));
+        this.growthVerts.unshift((0.5 - this.radius) * Math.sin(this.maxAngle));
+        this.growthVerts.unshift((0.5 - this.radius) * Math.cos(this.maxAngle));
         
         
-        /*
-        this.growthVerts.push((0.5 - radius) * Math.sin(this.maxAngle));
-        this.growthVerts.push((0.5 + radius) * Math.cos(this.maxAngle));
-        this.growthVerts.push((0.5 + radius) * Math.sin(this.maxAngle));*/
         
     }
 

@@ -19,8 +19,6 @@ var FSHADER_SOURCE =
 
 //GLOBALS
 var timer = Date.now();
-var e = 0; // current enum for bacteriaEnumerator
-var bacteriaEnumerator = [];
 var gameIsActive = true;
 var bigBacteria = false;
 
@@ -77,26 +75,7 @@ function main() {
   //create a limit for new bacteria
   var bacteriaLimit = 3; 
 
-  //create colours
-  var rgbaBlue = {rgba1: 0, rgba2: 0, rgba3: 1, rgba4: 1};
-  var rgbaPurple = {rgba1: 1, rgba2: 0, rgba3: 1, rgba4: 1};
-  var rgbaGreen = {rgba1: 0, rgba2: 1, rgba3: 0, rgba4: 1};
-  var rgbaYellow = {rgba1: 1, rgba2: 1, rgba3: 0, rgba4: 1};
-
-  //instantiate bacteria objects
-  //colour, minAngle, maxAngle, growth, rgba values
-  console.log("create enum");
-  var blueBac = new Bacteria(false, "blue", 0, 0, rgbaBlue, 0.05);
-  var purpleBac = new Bacteria(false, "purple", 0, 0, rgbaPurple, 0.05);
-  var greenBac = new Bacteria(false, "green", 0, 0, rgbaGreen, 0.05);
-  var yellowBac = new Bacteria(false, "yellow", 0, 0, rgbaYellow, 0.05);
-  console.log("created");
-  //Enumerator for bacteria objects
-  bacteriaEnumerator = [blueBac, purpleBac, greenBac, yellowBac];
-
   var bacteria = []; //stores current bacteria on the board;
-
-
 
   //LOOP
   function render(time) {
@@ -117,7 +96,12 @@ function main() {
     for(i = 0; i < bacteria.length; i++){
       bacteria[i].growthFunction(time);
     }
-      
+
+    if(bacteria.length > 0) {
+      document.getElementById('disp').innerHTML = bacteria[0].getAngle();
+    }
+
+
 
     //check for bacteria conllision
     for (i = 0; i < bacteria.length; i++){
@@ -159,57 +143,38 @@ function main() {
     if(bacteria.length < bacteriaLimit && (elapsed + 1) % 4 == 0){
       console.log('Drawing new bacteria on the board');
 
-      var angle = Math.floor(Math.random() * 360);
-      
-      if (!bacteriaEnumerator[e].isActive){
-        //store first circle fan vertices in object
-        bacteria.push(bacteriaEnumerator[e]);
-        bacteriaEnumerator[e].isActive = true;
-        //bacteriaEnumerator[e].growth++;
-        bacteriaEnumerator[e].minAngle = angle;
-        bacteriaEnumerator[e].maxAngle = angle;
-        bacteriaEnumerator[e].addFirstPosition();
-
-        console.log(bacteria); 
+      for(i = 0; i < 10; i++) {
+        var angle = Math.floor(Math.random() * 2 * Math.PI);
+        var insideBac = false;
+        for(j = 0; j < bacteria.length; j++) {
+          if(bacteria[j].isWithin(angle)) {
+            insideBac = true;
+          }
+        }
+        if(!insideBac) {
+          break;
+        }
       }
-      //enumerates colours 
-      e = EnumerateBacteria(e);
-      console.log(e);
-
       
+      bacteria.push(new Bacteria(angle, [Math.random(), Math.random(), Math.random(), (Math.random()*0.5)+0.5], 0.05));
+
+      console.log(bacteria); 
     }
 
     //draw all bacteria
-    if (bacteria.length != 0){ 
-      /*
-      for (i = 0; i < bacteria.length; i++){
-        for (j = 0; j < bacteria[i].positions.length; j++){
-          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bacteria[i].positions[j]), gl.STATIC_DRAW);
-          gl.uniform4f(u_FragColor, bacteria[i].rgba.rgba1, bacteria[i].rgba.rgba2, bacteria[i].rgba.rgba3, bacteria[i].rgba.rgba4);
-          gl.drawArrays(gl.TRIANGLE_FAN, 0, 12);
-        }
-        
-      }
-      */
       for (i = 0; i < bacteria.length; i++){
         //draw edge circles
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bacteria[i].edges[0]), gl.STATIC_DRAW);
-        gl.uniform4f(u_FragColor, bacteria[i].rgba.rgba1, bacteria[i].rgba.rgba2, bacteria[i].rgba.rgba3, bacteria[i].rgba.rgba4);
+        gl.uniform4f(u_FragColor, bacteria[i].r, bacteria[i].g, bacteria[i].b, bacteria[i].a);
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 12);
 
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bacteria[i].edges[1]), gl.STATIC_DRAW);
-        gl.uniform4f(u_FragColor, bacteria[i].rgba.rgba1, bacteria[i].rgba.rgba2, bacteria[i].rgba.rgba3, bacteria[i].rgba.rgba4);
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 12);
 
-
-
-
+        //draw middle growth verts
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bacteria[i].growthVerts), gl.STATIC_DRAW);
-        gl.uniform4f(u_FragColor, bacteria[i].rgba.rgba1, bacteria[i].rgba.rgba2, bacteria[i].rgba.rgba3, bacteria[i].rgba.rgba4);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, Math.floor(bacteria[i].growthVerts.length / 2.0));
       }
-
-    }
     
     //END GAME CRITERIA
     //check to see min/max angle threshold
