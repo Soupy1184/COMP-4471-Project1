@@ -69,7 +69,7 @@ function main() {
 
   gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
 
-  canvas.onmousedown = function(ev){ click(ev, canvas); };
+  
 
   //create play surface
   var origin = {x: 0.0, y: 0.0, r: 0.5}
@@ -103,6 +103,8 @@ function main() {
     time *= 0.001;  // convert to seconds
     Time();
     
+    canvas.onmousedown = function(ev){ click(ev, canvas, bacteria); };
+
     //play surface
     CreateCircle(gl, 0, 0, 0.5, 32); 
     gl.uniform4f(u_FragColor, 0, 0, 0, 1);
@@ -282,7 +284,7 @@ function StorePoint(x, y){
   return vertexData;
 }
 
-function click(ev, canvas){
+function click(ev, canvas, bacteria){
   var x = ev.clientX;
   var y = ev.clientY;
   var rect = ev.target.getBoundingClientRect();
@@ -290,7 +292,18 @@ function click(ev, canvas){
   x = ((x - rect.left) - canvas.width/2)/(canvas.width/2);
   y = (canvas.height/2 - (y - rect.top))/(canvas.height/2);
 
-  console.log('x: ' + x + ', y: ' + y);
+  var target = 0;
+  for (i = 0; i < bacteria.length; i++){
+    for (j = 0; j < bacteria.originCoords.length; j++){
+      var distance = EuclideanDistance([x, y], bacteria.originCoords[j]);
+      if (distance < 0.05){
+        bacteria[i].kill(j);
+        console.log('Bacteria killed at -> x: ' + x + ', y: ' + y);
+        break;
+      }
+    }
+  }
+  
 }
 
 //NOTES:
