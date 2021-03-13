@@ -26,6 +26,9 @@ function main() {
   // Retrieve <canvas> element
   var canvas = document.querySelector('#webgl');
 
+  //hide restart button
+  document.getElementById("restartBtn").style.display = "none";
+
   // Get the rendering context for WebGL
   var gl = getWebGLContext(canvas);
   if (!gl) {
@@ -68,11 +71,11 @@ function main() {
   gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
 
   //create a limit for new bacteria
-  var bacteriaLimit = 3; 
+  var bacteriaCap = 5; 
 
   var bacteria = []; //stores current bacteria on the board;
 
-  var el = 0;
+  var el = 0; //stores time since last rendered frame
 
   //LOOP
   function render(time) {
@@ -94,11 +97,9 @@ function main() {
       bacteria[i].growthFunction(time - el);
     }
 
-    
+    //update score display
     document.getElementById('score').innerHTML = "Score: " + Math.floor(score * 10);
     
-
-
 
     //check for bacteria conllision
     for (i = 0; i < bacteria.length - 1; i++){
@@ -130,9 +131,9 @@ function main() {
     }
 
     //create new starting bacteria
-    if(bacteria.length < bacteriaLimit && (elapsed + 1) % 4 == 0){
+    if((elapsed + 1) % 4 == 0){
 
-      //try 16 times to create a bacteria not within other bacteria
+      //try 10 times to create a bacteria not within other bacteria
       //if one is not found, give up
       var insideBac = true;
       for(i = 0; i < 10 && insideBac; i++) {
@@ -145,7 +146,7 @@ function main() {
         }
       }
       if(!insideBac) {
-        bacteria.push(new Bacteria(angle, [Math.random(), Math.random(), Math.random(), (Math.random()*0.5)+0.5], 0.05));
+        bacteria.push(new Bacteria(angle, [Math.random(), Math.random(), Math.random(), (Math.random()*0.5)+0.5], 0.03));
       }
 
       console.log(bacteria); 
@@ -167,21 +168,24 @@ function main() {
       }
     
     //END GAME CRITERIA
-    //check to see min/max angle threshold
+    //bacteria is too large or too many bacteria
     for (i = 0; i < bacteria.length; i++){
       if (bacteria[i].getSize() > Math.PI) {
         console.log('Now that\'s one huge bacteria! They\'re beyond your control');
         gameIsActive = false;
       }
     }
-    if(bacteria.length > 5) {
+    if(bacteria.length > bacteriaCap) {
       console.log('There are too many bacteria! They\'re beyond your control')
+      gameIsActive = false;
     }
 
     el = time;
     
     if (gameIsActive){
       requestAnimationFrame(render);
+    } else {
+      document.getElementById("restartBtn").style.display = "inline-block";
     }
   }
   requestAnimationFrame(render);
@@ -226,6 +230,11 @@ function StoreCircle(x, y, r, n){
   return vertexData;
 }
 
+
+function onClickRestart() {
+  location.reload();
+}
+
 function click(ev, canvas, bacteria){
   var x = ev.clientX;
   var y = ev.clientY;
@@ -251,17 +260,6 @@ function click(ev, canvas, bacteria){
         console.log(bacteria);
       }
     }
-
-
-    /*
-    for (j = 0; j < bacteria.originCoords.length; j++){
-      var distance = EuclideanDistance([x, y], bacteria.originCoords[j]);
-      if (distance < 0.05){
-        bacteria[i].kill(j);
-        console.log('Bacteria killed at -> x: ' + x + ', y: ' + y);
-        break;
-      }
-    }*/
 
   }
   
