@@ -236,6 +236,22 @@ function click(ev, canvas, bacteria){
 
   var target = 0;
   for (i = 0; i < bacteria.length; i++){
+    var clickAngle = Math.atan(y / x);
+    if(x > 0) {
+      if(y < 0) {
+        clickAngle = (2 * Math.PI) + clickAngle;
+      }
+    } else {
+      clickAngle = Math.PI + clickAngle;
+    }
+    console.log(clickAngle);
+    for(i = 0; i < bacteria.length; i++) {
+      if(bacteria[i].isWithin(clickAngle)) {
+        bacteria.splice(i, 1);
+      }
+    }
+
+
     /*
     for (j = 0; j < bacteria.originCoords.length; j++){
       var distance = EuclideanDistance([x, y], bacteria.originCoords[j]);
