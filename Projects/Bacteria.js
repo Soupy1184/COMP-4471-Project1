@@ -1,5 +1,4 @@
 class Bacteria {
-    
 
     constructor(angle,  rgba, radius){
         this.minAngle = angle; 
@@ -14,23 +13,6 @@ class Bacteria {
         this.originCoords = []; //store only the origin coords for each circle in positions array
     }
 
-    kill(target){
-        //take out the target value
-        var array1 = this.originCoords.slice(0, target);
-        var array2 = this.originCoords.slice(target, this.originCoords.length);
-        array2.shift();
-        this.originCoords = array1.concat(array2);
-
-        //do the same for circles
-
-
-        //
-
-        //check to see if the bacteria growth is 0
-        if(this.originCoords == 0){
-            this.isActive = false;
-        }
-    }
 
     addFirstPosition() {
         //minAngle == maxAngle
@@ -43,10 +25,6 @@ class Bacteria {
         this.growthVerts.push((0.5 - this.radius) * Math.sin(this.minAngle));
         this.growthVerts.push((0.5 + this.radius) * Math.cos(this.minAngle));
         this.growthVerts.push((0.5 + this.radius) * Math.sin(this.minAngle));
-    }
-
-    getAngle() {
-        return "" + this.minAngle + " and <br>" + this.maxAngle;
     }
 
     getSize() {
@@ -65,6 +43,14 @@ class Bacteria {
             return true;
         } else {
             return false;
+        }
+    }
+
+    growTo(size) {
+        var targetSize = this.getSize() + size;
+        console.log("target: " + targetSize + "\tthis.getSize() " + this.getSize() + "\tsize: " + size);
+        while(this.getSize() < targetSize) {
+            this.growthFunction(0.008);
         }
     }
 
@@ -106,14 +92,5 @@ class Bacteria {
     //     this.maxAngle = newMaxAngle;
     //     this.minAngle = newMinAngle;
     // }
-
-    getConsumed(){
-        this.isActive = false;
-        this.minAngle = 0;
-        this.maxAngle = 0;
-        this.growthVerts = [];
-        //this.originCoords = [];
-        this.edges = [];
-    }
 
 }

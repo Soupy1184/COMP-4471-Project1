@@ -93,48 +93,9 @@ function main() {
 
     // tell the shader the time
     gl.uniform1f(timeLoc, time);
-    
-    // grow the bacteria using the time passed as a parameter for how much to grow on that frame
-    for(i = 0; i < bacteria.length; i++){
-      bacteria[i].growthFunction(time - el);
-    }
-
-    //update score display
-    scoreText.innerHTML = "Score: " + Math.floor(score * 10);
-    
-
-    //check for bacteria conllision
-    for (i = 0; i < bacteria.length - 1; i++){
-      for(j = i + 1; j < bacteria.length; j++) {
-        if(bacteria[j].isWithin(bacteria[i].minAngle)) {  //bac[i] is inside bac[j]
-          if(bacteria[j].getSize() > bacteria[i].getSize()) { // if bac[j] > bac[i]
-            //subtract from score according to the smaller bacteria's size
-            score -= (bacteria[i].getSize() / 2);
-            bacteria.splice(i, 1); //remove bac[i]
-          } else {
-            //subtract from score according to the smaller bacteria's size
-            score -= (bacteria[j].getSize() / 2);
-            bacteria.splice(j, 1); //remove bac[j]
-          }
-          console.log(bacteria);
-        } else if(bacteria[j].isWithin(bacteria[i].maxAngle)) {
-          if(bacteria[j].getSize() > bacteria[i].getSize()) { // if bac[j] > bac[i]
-            //subtract from score according to the smaller bacteria's size
-            score -= (bacteria[i].getSize() / 2);
-            bacteria.splice(i, 1); //remove bac[i]
-          } else {
-            //subtract from score according to the smaller bacteria's size
-            score -= (bacteria[j].getSize() / 2);
-            bacteria.splice(j, 1); //remove bac[j]
-          }
-          console.log(bacteria);
-        }
-      }
-    }
 
     //create new starting bacteria
-    if((elapsed + 1) % 4 == 0){
-
+    if((elapsed + 1) % 4 == 0) {
       //try 10 times to create a bacteria not within other bacteria
       //if one is not found, give up
       var insideBac = true;
@@ -150,9 +111,53 @@ function main() {
       if(!insideBac) {
         bacteria.push(new Bacteria(angle, [Math.random(), Math.random(), Math.random(), (Math.random()*0.5)+0.5], 0.03));
       }
-
       console.log(bacteria); 
     }
+
+    
+    // grow the bacteria using the time passed as a parameter for how much to grow on that frame
+    for(i = 0; i < bacteria.length; i++){
+      bacteria[i].growthFunction(time - el);
+    }
+
+    //update score display
+    scoreText.innerHTML = "Score: " + Math.floor(score * 10);
+    
+
+    //check for bacteria collision
+    for (i = 0; i < bacteria.length - 1; i++){
+      for(j = i + 1; j < bacteria.length; j++) {
+        if(bacteria[j].isWithin(bacteria[i].minAngle)) {  //bac[i] is inside bac[j]
+          if(bacteria[j].getSize() > bacteria[i].getSize()) { // if bac[j] > bac[i]
+            //subtract from score according to the smaller bacteria's size
+            score -= (bacteria[i].getSize() / 2);
+            bacteria[j].growTo(bacteria[i].getSize());
+            bacteria.splice(i, 1); //remove bac[i]
+          } else {
+            //subtract from score according to the smaller bacteria's size
+            score -= (bacteria[j].getSize() / 2);
+            bacteria[i].growTo(bacteria[j].getSize());
+            bacteria.splice(j, 1); //remove bac[j]
+          }
+          console.log(bacteria);
+        } else if(bacteria[j].isWithin(bacteria[i].maxAngle)) {
+          if(bacteria[j].getSize() > bacteria[i].getSize()) { // if bac[j] > bac[i]
+            //subtract from score according to the smaller bacteria's size
+            score -= (bacteria[i].getSize() / 2);
+            bacteria[j].growTo(bacteria[i].getSize());
+            bacteria.splice(i, 1); //remove bac[i]
+          } else {
+            //subtract from score according to the smaller bacteria's size
+            score -= (bacteria[j].getSize() / 2);
+            bacteria[i].growTo(bacteria[j].getSize());
+            bacteria.splice(j, 1); //remove bac[j]
+          }
+          console.log(bacteria);
+        }
+      }
+    }
+
+
 
     //draw all bacteria
     for (i = 0; i < bacteria.length; i++){
