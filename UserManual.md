@@ -1,3 +1,7 @@
+# Contributors
+Equal Contributions from Christopher Campbell and Ben Puhalski
+https://github.com/Soupy1184/COMP-4471-Project1
+
 # User Manual
 
 Bacteria Project's user manual

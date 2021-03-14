@@ -2,7 +2,8 @@
 
 COMP-4471, Winter 2021
 
-Christopher Campbell, Ben Puhalski
+https://github.com/Soupy1184/COMP-4471-Project1
+Christopher Campbell and Ben Puhalski
 
 # Table of Contents
 
