@@ -77,6 +77,8 @@ function main() {
 
   var el = 0; //stores time since last rendered frame
 
+  var scoreText = document.getElementById('score');
+
   //LOOP
   function render(time) {
     time *= 0.001;  // convert to seconds
@@ -98,7 +100,7 @@ function main() {
     }
 
     //update score display
-    document.getElementById('score').innerHTML = "Score: " + Math.floor(score * 10);
+    scoreText.innerHTML = "Score: " + Math.floor(score * 10);
     
 
     //check for bacteria conllision
@@ -153,30 +155,34 @@ function main() {
     }
 
     //draw all bacteria
-      for (i = 0; i < bacteria.length; i++){
-        //draw edge circles
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bacteria[i].edges[0]), gl.STATIC_DRAW);
-        gl.uniform4f(u_FragColor, bacteria[i].r, bacteria[i].g, bacteria[i].b, bacteria[i].a);
-        gl.drawArrays(gl.TRIANGLE_FAN, 0, 12);
+    for (i = 0; i < bacteria.length; i++){
+      //draw edge circles
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bacteria[i].edges[0]), gl.STATIC_DRAW);
+      gl.uniform4f(u_FragColor, bacteria[i].r, bacteria[i].g, bacteria[i].b, bacteria[i].a);
+      gl.drawArrays(gl.TRIANGLE_FAN, 0, 12);
 
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bacteria[i].edges[1]), gl.STATIC_DRAW);
-        gl.drawArrays(gl.TRIANGLE_FAN, 0, 12);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bacteria[i].edges[1]), gl.STATIC_DRAW);
+      gl.drawArrays(gl.TRIANGLE_FAN, 0, 12);
 
-        //draw middle growth verts
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bacteria[i].growthVerts), gl.STATIC_DRAW);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, Math.floor(bacteria[i].growthVerts.length / 2.0));
-      }
+      //draw middle growth verts
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bacteria[i].growthVerts), gl.STATIC_DRAW);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, Math.floor(bacteria[i].growthVerts.length / 2.0));
+    }
     
+
+
     //END GAME CRITERIA
     //bacteria is too large or too many bacteria
     for (i = 0; i < bacteria.length; i++){
       if (bacteria[i].getSize() > Math.PI) {
-        console.log('Now that\'s one huge bacteria! They\'re beyond your control');
+        scoreText.innerHTML = "Now that\'s one huge bacteria! They\'re beyond your control<br>Final Score: " + Math.floor(score * 10);
+        console.log("bacteria[i].getSize() > Math.PI");
         gameIsActive = false;
       }
     }
     if(bacteria.length > bacteriaCap) {
-      console.log('There are too many bacteria! They\'re beyond your control')
+      scoreText.innerHTML = "There are too many bacteria! They\'re beyond your control<br>Final Score: " + Math.floor(score * 10);
+      console.log("bacteria.length > " + bacteriaCap);
       gameIsActive = false;
     }
 
